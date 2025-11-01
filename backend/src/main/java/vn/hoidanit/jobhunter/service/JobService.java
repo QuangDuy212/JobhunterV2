@@ -14,11 +14,13 @@ import org.springframework.stereotype.Service;
 import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.Job;
 import vn.hoidanit.jobhunter.domain.Skill;
+import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResCreateJobDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResUpdateJob;
 import vn.hoidanit.jobhunter.repository.JobRepository;
 import vn.hoidanit.jobhunter.repository.SkillRespository;
+import vn.hoidanit.jobhunter.util.SecurityUtil;
 
 @Service
 public class JobService {
@@ -26,13 +28,15 @@ public class JobService {
     private final SkillRespository skillRespository;
     private final SkillService skillService;
     private final CompanyService companyService;
+    private final UserService userService;
 
     public JobService(JobRepository jobRepository, SkillRespository skillRespository, SkillService skillService,
-            CompanyService companyService) {
+            CompanyService companyService,UserService userService) {
         this.jobRepository = jobRepository;
         this.skillRespository = skillRespository;
         this.skillService = skillService;
         this.companyService = companyService;
+        this.userService = userService;
     }
 
     public ResCreateJobDTO handleCreateJob(Job j) {
@@ -162,8 +166,18 @@ public class JobService {
 
     public ResultPaginationDTO fetchAllJobs(Specification<Job> spec, Pageable pageable) {
 
-        Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
+        
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get()
+        : "";
+        
+        User currentUserDB = this.userService.handleGetUserByUsername(email);
+        if(currentUserDB.getCompany() != null){
+            Specification<Job> companySpec = (root, query, criteriaBuilder) -> 
+            criteriaBuilder.equal(root.get("company").get("id"), currentUserDB.getCompany().getId());
+            spec = spec == null ? companySpec : spec.and(companySpec);
+        }
+        Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
 
         List<Job> listJob = pageJob.getContent();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
