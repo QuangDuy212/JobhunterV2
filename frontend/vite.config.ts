@@ -30,6 +30,8 @@ export default defineConfig(({ command, mode }) => {
         config: `${path.resolve(__dirname, "./src/config/")}`,
         pages: `${path.resolve(__dirname, "./src/pages/")}`,
       },
+    },css: {
+      postcss: "./postcss.config.cjs", // chỉ định file PostCSS nếu mày đổi tên
     },
   }
 })

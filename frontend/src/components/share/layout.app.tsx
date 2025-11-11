@@ -3,6 +3,7 @@ import { setRefreshTokenAction } from "@/redux/slice/accountSlide";
 import { message } from "antd";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import ChatWidget from "./chatbot/chat.widget";
 
 interface IProps {
     children: React.ReactNode
@@ -27,6 +28,7 @@ const LayoutApp = (props: IProps) => {
     return (
         <>
             {props.children}
+            <ChatWidget />
         </>
     )
 }
