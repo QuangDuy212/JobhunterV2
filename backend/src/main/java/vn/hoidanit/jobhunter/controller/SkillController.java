@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/v1")
@@ -95,5 +97,13 @@ public class SkillController {
         // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
         return ResponseEntity.ok(null);
     }
+
+    @GetMapping("/skills/count-all-skills")
+    @ApiMessage("Fetch count all skills")
+    public ResponseEntity<Long> countAllSkills() {
+        long count = this.skillService.countAllSkills();
+        return ResponseEntity.ok(count);
+    }
+    
 
 }

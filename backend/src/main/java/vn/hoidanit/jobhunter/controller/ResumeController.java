@@ -28,6 +28,7 @@ import vn.hoidanit.jobhunter.domain.Job;
 import vn.hoidanit.jobhunter.domain.Resume;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
+import vn.hoidanit.jobhunter.domain.response.resume.ResCountResumeByStausDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResCreateResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResUpdateResumeDTO;
@@ -36,7 +37,9 @@ import vn.hoidanit.jobhunter.service.ResumeService;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
+import vn.hoidanit.jobhunter.util.constant.ResumeStateEnum;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -108,28 +111,54 @@ public class ResumeController {
     @GetMapping("/resumes")
     @ApiMessage("fetch all resumes")
     public ResponseEntity<ResultPaginationDTO> fetchAllUsers(
-            @Filter Specification<Resume> spec,
+            @Filter Specification<Resume> spec, // PHẢI là Specification<Resume>
             Pageable pageable) {
 
-        List<Long> arrJobIds = null;
-        String email = SecurityUtil.getCurrentUserLogin().isPresent()
-                ? SecurityUtil.getCurrentUserLogin().get()
-                : "";
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
         User currentUser = this.userService.handleGetUserByUsername(email);
-        if (currentUser != null) {
+
+        // Mặc định, finalSpec là spec (điều kiện lọc từ người dùng)
+        Specification<Resume> finalSpec = spec;
+
+        // 1. Chỉ áp dụng logic phân quyền nếu không phải SUPER_ADMIN
+        if (currentUser != null && !currentUser.getRole().getName().equals("SUPER_ADMIN")) {
+
+            List<Long> arrJobIds = null;
             Company userCompany = currentUser.getCompany();
+
             if (userCompany != null) {
+                // Lấy Job IDs của công ty người dùng (HR)
                 List<Job> companyJobs = userCompany.getJobs();
                 if (companyJobs != null && companyJobs.size() > 0) {
-                    arrJobIds = companyJobs.stream().map(x -> x.getId())
+                    arrJobIds = companyJobs.stream()
+                            .map(Job::getId)
                             .collect(Collectors.toList());
                 }
             }
-        }
-        Specification<Resume> jobInSpec = filterSpecificationConverter.convert(filterBuilder.field("job")
-                .in(filterBuilder.input(arrJobIds)).get());
 
-        Specification<Resume> finalSpec = jobInSpec.and(jobInSpec);
+            // 2. Tạo Specification giới hạn Job ID
+            if (arrJobIds != null && !arrJobIds.isEmpty()) {
+                // Tạo điều kiện: Resume.job.id IN (arrJobIds)
+                // Đảm bảo kiểu trả về là Specification<Resume>
+                Specification<Resume> jobInSpec = filterSpecificationConverter.convert(filterBuilder.field("job")
+                        .in(filterBuilder.input(arrJobIds)).get());
+
+                // 3. Kết hợp điều kiện phân quyền (jobInSpec) với điều kiện lọc người dùng
+                // (spec)
+                // Lỗi đã được sửa bằng cách đảm bảo jobInSpec và spec cùng kiểu <Resume>
+                finalSpec = jobInSpec.and(spec);
+            } else {
+                // Trường hợp không có Job ID nào để xem (HR không có công ty/job)
+                // Lọc theo ID = -1L để trả về kết quả rỗng (No resumes)
+                // Điều này hiệu quả hơn việc trả về null hoặc throw exception
+                Specification<Resume> noResultSpec = filterSpecificationConverter.convert(filterBuilder.field("id")
+                        .equal(filterBuilder.input(-1L)).get());
+
+                finalSpec = noResultSpec.and(spec);
+            }
+        }
+        // Nếu là SUPER_ADMIN, finalSpec vẫn là spec (cho phép xem tất cả resumes)
+
         return ResponseEntity.ok(this.resumeService.fetchAllResumes(finalSpec, pageable));
     }
 
@@ -151,5 +180,33 @@ public class ResumeController {
             throws IdInvalidException {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(this.resumeService.fetchResumeByUser(pageable));
+    }
+
+    @GetMapping("/resumes/count-all-resumes")
+    @ApiMessage("Fetch count all resumes")
+    public ResponseEntity<Long> countAllResumes() {
+        long count = this.resumeService.countAllResumes();
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/resumes/count-resumes-by-time")
+    @ApiMessage("Fetch count resumes by time")
+    public ResponseEntity<Long> countResumesByTime(
+            @RequestParam int year,
+            @RequestParam int month) throws IdInvalidException {
+        // Kiểm tra cơ bản
+        if (month < 1 || month > 12) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Long resumes = resumeService.getResumesByMonth(year, month);
+
+        return ResponseEntity.ok(resumes);
+    }
+
+    @GetMapping("/resumes/count/count-by-status")
+    @ApiMessage("Fetch count resumes by status")
+    public ResponseEntity<List<ResCountResumeByStausDTO>> getMethodName() {
+        return ResponseEntity.ok(this.resumeService.countResumesByStatus());
     }
 }

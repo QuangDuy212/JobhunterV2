@@ -80,4 +80,8 @@ public class SkillService {
     public List<Skill> fetchListSkillByListId(List<Long> listIds) {
         return this.skillRespository.findByIdIn(listIds);
     }
+
+    public Long countAllSkills() {
+        return this.skillRespository.count();
+    }
 }

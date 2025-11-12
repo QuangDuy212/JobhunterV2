@@ -70,6 +70,10 @@ export const callFetchCompanyById = (id: string) => {
     return axios.get<IBackendRes<ICompany>>(`/api/v1/companies/${id}`);
 }
 
+export const callCountAllCompanies = () => {
+    return axios.get<IBackendRes<number>>(`/api/v1/companies/count-all-companies`);
+}
+
 /**
  * 
 Module Skill
@@ -88,6 +92,10 @@ export const callDeleteSkill = (id: string) => {
 
 export const callFetchAllSkill = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<ISkill>>>(`/api/v1/skills?${query}`);
+}
+
+export const callCountAllSkills = () =>{
+    return axios.get<IBackendRes<number>>(`/api/v1/skills/count-all-skills`);
 }
 
 
@@ -112,6 +120,10 @@ export const callFetchUser = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/v1/users?${query}`);
 }
 
+export const callCountAllUsers = () => {
+    return axios.get<IBackendRes<number>>(`/api/v1/users/count-all-users`);
+}
+
 /**
  * 
 Module Job
@@ -134,6 +146,14 @@ export const callFetchJob = (query: string) => {
 
 export const callFetchJobById = (id: string) => {
     return axios.get<IBackendRes<IJob>>(`/api/v1/jobs/${id}`);
+}
+
+export const callCountAllJobs = () => {
+    return axios.get<IBackendRes<number>>(`/api/v1/jobs/count-all-jobs`);
+}
+
+export const callFetchJobsBySkill = (id: string) =>{
+    return axios.get<IBackendRes<IJob[]>>(`/api/v1/jobs/fetch-by-skill/${id}`);
 }
 
 /**
@@ -171,6 +191,18 @@ export const callFetchResumeById = (id: string) => {
 
 export const callFetchResumeByUser = () => {
     return axios.post<IBackendRes<IModelPaginate<IResume>>>(`/api/v1/resumes/by-user`);
+}
+
+export const callCountAllResumes = () => {
+    return axios.get<IBackendRes<number>>(`/api/v1/resumes/count-all-resumes`);
+}
+
+export const callCountResumesByTime = (year: number, month: number) => {
+    return axios.get<IBackendRes<number>>(`/api/v1/resumes/count-resumes-by-time?year=${year}&month=${month}`);
+}
+
+export const callCountResumesByStatus = ()=>{
+    return axios.get<IBackendRes<{status: string, count: number}[]>>(`/api/v1/resumes/count/count-by-status`);
 }
 
 /**

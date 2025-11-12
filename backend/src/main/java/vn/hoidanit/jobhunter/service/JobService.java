@@ -193,4 +193,20 @@ public class JobService {
         return rs;
     }
 
+    public Long countJob() {
+        return this.jobRepository.count();
+    }
+
+    public List<Job> fetchJobBySkill(long skillId){
+        Optional<Skill> skillOptional = this.skillRespository.findById(skillId);
+        if(skillOptional.isPresent()){
+            return this.jobRepository.findBySkills(skillOptional.get());
+        }
+        return new ArrayList<>();
+    }
+
+    public List<Job> fetchAllJobs() {
+        return this.jobRepository.findAll();
+    }
+
 }
