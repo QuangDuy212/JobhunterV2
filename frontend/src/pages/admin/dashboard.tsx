@@ -1,46 +1,379 @@
-import { Card, Col, Row, Statistic } from "antd";
-import CountUp from 'react-countup';
+import React, { useEffect } from 'react';
+import { Card, Col, Row, Typography, Space, Button, Input, Divider } from 'antd';
+import { RiseOutlined, FileTextOutlined, TeamOutlined, BarChartOutlined, EnvironmentOutlined } from '@ant-design/icons';
+
+// --- Import từ Chart.js và react-chartjs-2 ---
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend
+} from 'chart.js';
+import { callCountAllJobs, callCountAllResumes, callCountAllUsers, callCountResumesByStatus, callCountResumesByTime, callFetchAllSkill, callFetchJobsBySkill } from '@/config/api';
+import { set } from 'lodash';
+
+// Đăng ký các thành phần cần thiết của Chart.js
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    ArcElement, // Dùng cho biểu đồ Doughnut
+    Title,
+    Tooltip,
+    Legend
+);
+
+const { Title: AntdTitle, Text } = Typography;
+
+// --- Dữ liệu và Cấu hình cho Chart.js ---
+
+
+
+
+// 2. Job Postings by Department (Biểu đồ Cột - Bar Chart)
+
+const barOptions = {
+    responsive: true,
+    plugins: {
+        legend: { display: false },
+        title: { display: false },
+    },
+    scales: {
+        y: { beginAtZero: true },
+        x: {
+            // Tối ưu hóa việc hiển thị tên cột
+            ticks: {
+                autoSkip: false,
+                maxRotation: 0,
+                minRotation: 0,
+            }
+        }
+    }
+};
+
+
+
+
+// --- Component Dashboard Chính (Giữ nguyên cấu trúc Antd) ---
+
+interface StatCardProps {
+    title: string;
+    value: string;
+    change: string;
+    icon: React.ReactNode;
+    iconBg: string;
+    iconColor: string;
+    valueColor?: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon, iconBg, iconColor, valueColor = '#333' }) => (
+    <Card bordered={false} style={{ height: '100%' }}>
+        <Row justify="space-between" align="top">
+            <Col>
+                <div style={{ backgroundColor: iconBg, color: iconColor, padding: 8, borderRadius: '50%', display: 'inline-flex' }}>
+                    {icon}
+                </div>
+            </Col>
+            <Col>
+                <Text strong style={{ color: change.includes('-') ? '#f5222d' : '#52c41a' }}>
+                    {change}
+                </Text>
+            </Col>
+        </Row>
+        <div style={{ marginTop: 15 }}>
+            <Text type="secondary" style={{ display: 'block' }}>{title}</Text>
+            <AntdTitle level={3} style={{ margin: '4px 0 0', color: valueColor }}>{value}</AntdTitle>
+        </div>
+    </Card>
+);
 
 const DashboardPage = () => {
-    const formatter = (value: number | string) => {
-        return (
-            <CountUp end={Number(value)} separator="," />
-        );
+
+    const [countAllUsers, setCountAllUsers] = React.useState<number>(0);
+    const [countAllResumes, setCountAllResumes] = React.useState<number>(0);
+    const [countAllJobs, setCountAllJobs] = React.useState<number>(0);
+    const [countAllCompanies, setCountAllCompanies] = React.useState<number>(0);
+    const [resumesBy12Months, setResumesBy12Months] = React.useState<number[]>([]);
+    const [jobsBySkill, setJobsBySkill] = React.useState<{ skill: string; count: number }[]>([]);
+    const [listSkills, setListSkills] = React.useState<string[]>([]);
+    const [resumesByStatus, setResumesByStatus] = React.useState<{ status: string; count: number }[]>([]);
+
+    const lineOptions = {
+        responsive: true,
+        plugins: {
+            legend: { position: "bottom" },
+            title: { display: false },
+        },
+        scales: {
+            y: {
+                // 1. Đặt phạm vi Min/Max (Dựa vào hình ảnh 0-120)
+                min: 0,
+                max: resumesBy12Months.length > 0 ? Math.max(...resumesBy12Months) + 20 : 120,
+
+                // 2. Định nghĩa bước nhảy cố định (Mỗi bước nhảy 20)
+                ticks: {
+                    stepSize: 1, // Chart.js sẽ tự sinh ra 0, 20, 40, 60, ... 120
+                },
+
+                // Đảm bảo không bắt đầu từ 0 là đủ, nhưng min/max kiểm soát tốt hơn
+                beginAtZero: true,
+            },
+        },
     };
 
+    // 1. Applications & Hires Trend (Biểu đồ Đường - Line Chart)
+    const trendLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const trendData = {
+        labels: trendLabels,
+        datasets: [
+            {
+                label: 'Applications',
+                borderColor: '#1890ff', // Màu xanh dương Ant Design
+                backgroundColor: 'rgba(24, 144, 255, 0.1)',
+                tension: 0.4, // Tạo đường cong mượt mà
+                fill: false,
+            },
+            {
+                label: 'Hires',
+                data: resumesBy12Months,
+                borderColor: '#52c41a', // Màu xanh lá Ant Design
+                backgroundColor: 'rgba(82, 196, 26, 0.1)',
+                tension: 0.4,
+                fill: false,
+            },
+        ],
+    };
+
+    const jobPostingLabels = [...listSkills];
+    const jobPostingData = {
+        labels: jobPostingLabels,
+        datasets: [
+            {
+                label: 'Count',
+                data: [...jobsBySkill.map(item => item.count)],
+                backgroundColor: '#1890ff',
+            },
+        ],
+    };
+
+    // 3. Application Status Distribution (Biểu đồ Donut - Doughnut Chart)
+    const statusData = {
+        labels: resumesByStatus.map(item => item.status),
+        datasets: [
+            {
+                data: resumesByStatus.map(item => item.count), // Tổng 100%
+                backgroundColor: [
+                    '#faad14', // Vàng cam (Reviewing) <- MÀU THỨ TƯ ĐÃ ĐƯỢC THÊM
+                    '#1890ff', // Xanh dương (Active)
+                    '#52c41a', // Xanh lá (On Hold)
+                    '#f5222d', // Đỏ (Closed)
+                ],
+                hoverBackgroundColor: [
+                    '#ffc53d', // Màu hover tương ứng
+                    '#40a9ff',
+                    '#73d13d',
+                    '#ff4d4f',
+                ],
+                borderWidth: 1,
+            },
+        ],
+    };
+    const doughnutOptions = {
+        responsive: true,
+        plugins: {
+            legend: { position: 'right' },
+            title: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ({ label, raw }: { label: string; raw: number }) => `${label}: ${raw}%`
+                }
+            }
+        },
+        cutout: '70%', // Làm cho nó thành biểu đồ Donut thay vì Pie
+    };
+
+
+    useEffect(() => {
+        fetchCountAllUsers();
+        fetchCountAllResumes();
+        fetchCountAllJobs();
+        fetchCountAllCompanies();
+        fetchResumesBy12Months();
+        fetchJobsBySkill();
+        fetchCountResumesByStatus();
+    }, []);
+
+    const fetchCountAllUsers = async () => {
+        const res = await callCountAllUsers();
+        if (res && res.data)
+            setCountAllUsers(res.data);
+    };
+
+    const fetchCountAllResumes = async () => {
+        const res = await callCountAllResumes();
+        if (res && res.data)
+            setCountAllResumes(res.data);
+    }
+    const fetchCountAllJobs = async () => {
+        const res = await callCountAllJobs();
+        if (res && res.data)
+            setCountAllJobs(res.data);
+    }
+
+    const fetchCountAllCompanies = async () => {
+        const res = await callCountAllJobs();
+        if (res && res.data)
+            setCountAllCompanies(res.data);
+    }
+
+    const fetchCountResumesByStatus = async () => {
+        const res = await callCountResumesByStatus();
+        if (res && res.data){
+            const total = res.data.map((item: any) => item.count).reduce((a: number, b: number) => a + b, 0);
+            setResumesByStatus(res.data.map((item: any) => ({
+                status: item.status,
+                count: item.count / total * 100
+            })));
+        }
+    }
+
+    const fetchResumesBy12Months = async () => {
+        const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        const times = arr.map(async (month) => {
+            const res = await callCountResumesByTime(2025, month);
+            if (res && res.data) {
+                setResumesBy12Months(prev => {
+                    const newArr = [...prev];
+                    newArr[month - 1] = res.data ?? 0;
+                    return newArr;
+                });
+            }
+        })
+    }
+
+    const fetchJobsBySkill = async () => {
+        const skills = await callFetchAllSkill(`page=1&size=100`);
+        if (skills && skills.data && skills.data.result)
+            skills.data.result.map(async (skill: any) => {
+                const res = await callFetchJobsBySkill(skill.id);
+                setListSkills(prev => {
+                    if (prev.includes(skill.name)) {
+                        return prev;
+                    }
+                    return [...prev, skill.name];
+                });
+                if (res && res.data) {
+                    setJobsBySkill(prev => {
+                        if (prev.findIndex(item => item.skill === skill.name) !== -1) {
+                            return prev;
+                        }
+                        return [...prev, { skill: skill.name, count: res.data?.length ?? 0 }];
+                    });
+                }
+            });
+    }
     return (
-        <Row gutter={[20, 20]}>
-            <Col span={24} md={8}>
-                <Card title="Card title" bordered={false} >
-                    <Statistic
-                        title="Active Users"
-                        value={112893}
-                        formatter={formatter}
-                    />
+        <div style={{ padding: 24 }}>
+            {/* Header */}
+            <AntdTitle level={2} style={{ margin: '0 0 5px' }}>Dashboard</AntdTitle>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 20 }}>Welcome back! Here's what's happening with your recruitment.</Text>
 
-                </Card>
-            </Col>
-            <Col span={24} md={8}>
-                <Card title="Card title" bordered={false} >
-                    <Statistic
-                        title="Active Users"
-                        value={112893}
-                        formatter={formatter}
-                    />
-                </Card>
-            </Col>
-            <Col span={24} md={8}>
-                <Card title="Card title" bordered={false} >
-                    <Statistic
-                        title="Active Users"
-                        value={112893}
-                        formatter={formatter}
-                    />
-                </Card>
-            </Col>
+            <Divider style={{ margin: '10px 0 20px 0' }} />
 
-        </Row>
-    )
-}
+
+
+            {/* Hàng 1: Overview Cards (Giữ nguyên Antd) */}
+            <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
+                {/* ... (Các StatCard khác) ... */}
+                <Col xs={24} sm={12} lg={6}>
+                    <StatCard
+                        title="Total Applications"
+                        value={countAllResumes.toString()}
+                        change="+12.5%"
+                        icon={<FileTextOutlined style={{ fontSize: 16 }} />}
+                        iconBg="#e6f7ff"
+                        iconColor="#1890ff"
+                    />
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                    <Card bordered={false} style={{ height: '100%', background: 'linear-gradient(135deg, #6dd5ed 0%, #2193b0 100%)' }}>
+                        <Row justify="space-between" align="top">
+                            <Col>
+                                <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: '#fff', padding: 8, borderRadius: '50%', display: 'inline-flex' }}>
+                                    <BarChartOutlined style={{ fontSize: 16 }} />
+                                </div>
+                            </Col>
+                            <Col>
+                                <Text strong style={{ color: 'rgba(255,255,255,0.8)' }}>
+                                    +8.2%
+                                </Text>
+                            </Col>
+                        </Row>
+                        <div style={{ marginTop: 15 }}>
+                            <Text style={{ display: 'block', color: 'rgba(255,255,255,0.8)' }}>Active Jobs</Text>
+                            <AntdTitle level={3} style={{ margin: '4px 0 0', color: '#fff' }}>{countAllJobs}</AntdTitle>
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                    <StatCard
+                        title="Total Users"
+                        value={countAllUsers.toString()}
+                        change="+5.1%"
+                        icon={<TeamOutlined style={{ fontSize: 16 }} />}
+                        iconBg="#fff0f6"
+                        iconColor="#eb2f96"
+                    />
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                    <StatCard
+                        title="Toltal companies"
+                        value={countAllCompanies.toString()}
+                        change="-2.3%"
+                        icon={<RiseOutlined style={{ fontSize: 16 }} />}
+                        iconBg="#fff1f0"
+                        iconColor="#f5222d"
+                    />
+                </Col>
+            </Row>
+
+            {/* Hàng 4: Biểu đồ Donut (Dùng Chart.js) */}
+            <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
+                <Col span={24}>
+                    <Card title={<AntdTitle level={4} style={{ margin: 0 }}>Application Status Distribution</AntdTitle>} bordered={false}>
+                        <div style={{ maxWidth: 400, margin: '0 auto', padding: '20px 0' }}>
+                            <Doughnut options={doughnutOptions} data={statusData} />
+                        </div>
+                    </Card>
+                </Col>
+            </Row>
+
+            {/* Hàng 3: Biểu đồ Đường và Cột (Dùng Chart.js) */}
+            <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
+                <Col xs={24} lg={12}>
+                    <Card title={<AntdTitle level={4} style={{ margin: 0 }}>Applications & Hires Trend</AntdTitle>} bordered={false}>
+                        <Line options={lineOptions} data={trendData} />
+                    </Card>
+                </Col>
+                <Col xs={24} lg={12}>
+                    <Card title={<AntdTitle level={4} style={{ margin: 0 }}>Job By Skill</AntdTitle>} bordered={false}>
+                        <Bar options={barOptions} data={jobPostingData} />
+                    </Card>
+                </Col>
+            </Row>
+
+
+        </div>
+    );
+};
 
 export default DashboardPage;

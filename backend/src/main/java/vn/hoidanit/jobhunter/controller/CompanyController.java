@@ -83,4 +83,11 @@ public class CompanyController {
         return ResponseEntity.ok(null);
     }
 
+    @GetMapping("/companies/count-all-companies")
+    @ApiMessage("Fetch count all companies")
+    public ResponseEntity<Long> countAllCompanies() {
+        long count = this.companyService.countAllCompanies();
+        return ResponseEntity.ok(count);
+    }
+
 }

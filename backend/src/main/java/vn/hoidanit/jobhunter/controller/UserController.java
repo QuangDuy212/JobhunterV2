@@ -112,4 +112,12 @@ public class UserController {
         return ResponseEntity.ok(res);
     }
 
+    @GetMapping("/users/count-all-users")
+    @ApiMessage("Fetch count all users")
+    public ResponseEntity<Long> countAllUsers() {
+        long count = this.userService.countAllUsers();
+        return ResponseEntity.ok(count);
+    }
+    
+
 }

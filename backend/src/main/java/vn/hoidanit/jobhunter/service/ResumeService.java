@@ -1,5 +1,8 @@
 package vn.hoidanit.jobhunter.service;
 
+import java.time.Instant;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,11 +22,13 @@ import vn.hoidanit.jobhunter.domain.Job;
 import vn.hoidanit.jobhunter.domain.Resume;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
+import vn.hoidanit.jobhunter.domain.response.resume.ResCountResumeByStausDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResCreateResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResUpdateResumeDTO;
 import vn.hoidanit.jobhunter.repository.ResumeRepository;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
+import vn.hoidanit.jobhunter.util.constant.ResumeStateEnum;
 
 @Service
 public class ResumeService {
@@ -176,5 +181,40 @@ public class ResumeService {
         rs.setMeta(mt);
         rs.setResult(listResume);
         return rs;
+    }
+
+    public Long countAllResumes() {
+        return this.resumeRepository.count();
+    }
+
+    public Long getResumesByMonth(int year, int month) {
+        // 1. Tạo YearMonth từ tham số đầu vào
+        YearMonth yearMonth = YearMonth.of(year, month);
+
+        // 2. Lấy thời điểm bắt đầu của tháng (tại 00:00:00)
+        Instant startDate = yearMonth.atDay(1)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC); // Sử dụng UTC để khớp với cách JPA/Instant lưu trữ
+
+        // 3. Lấy thời điểm kết thúc của tháng (tại 23:59:59.999999999)
+        Instant endDate = yearMonth.atEndOfMonth()
+                .atTime(23, 59, 59, 999999999)
+                .toInstant(ZoneOffset.UTC);
+
+        // 4. Gọi Repository để truy 
+        List<Resume> resumes = this.resumeRepository.findAllByCreatedAtBetween(startDate, endDate);
+        return resumes.size() + 0L;
+    }
+
+    public List<ResCountResumeByStausDTO>  countResumesByStatus() {
+        List<ResumeStateEnum> statuses = List.of(ResumeStateEnum.values());
+        List<ResCountResumeByStausDTO> result = statuses.stream().map(status -> {
+            long count = this.resumeRepository.countByStatus(status);
+            ResCountResumeByStausDTO dto = new ResCountResumeByStausDTO();
+            dto.setStatus(status.name());
+            dto.setCount(count);
+            return dto;
+        }).collect(Collectors.toList());
+        return result;
     }
 }

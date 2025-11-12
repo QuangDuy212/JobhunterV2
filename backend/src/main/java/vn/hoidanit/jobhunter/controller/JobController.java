@@ -26,6 +26,8 @@ import vn.hoidanit.jobhunter.domain.response.job.ResUpdateJob;
 import vn.hoidanit.jobhunter.service.JobService;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/v1")
@@ -80,4 +82,19 @@ public class JobController {
         Job job = this.jobService.fetchJobById(id);
         return ResponseEntity.ok().body(job);
     }
+
+    @GetMapping("/jobs/count-all-jobs")
+    @ApiMessage("Fetch count all jobs")
+    public ResponseEntity<Long> fetchCountAllJobs() {
+        long count = this.jobService.countJob();
+        return ResponseEntity.ok().body(count);
+    }
+
+    @GetMapping("/jobs/fetch-by-skill/{id}")
+    @ApiMessage("Fetch job by skill")
+    public ResponseEntity<List<Job>> fetchJobBySkill(@PathVariable("id") long id) {
+        List<Job> jobs = this.jobService.fetchJobBySkill(id);
+        return ResponseEntity.ok().body(jobs);
+    }
+    
 }

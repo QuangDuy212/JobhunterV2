@@ -201,4 +201,8 @@ public class UserService {
         user.setRefreshToken(null);
         this.userRepository.save(user);
     }
+
+    public Long countAllUsers() {
+        return this.userRepository.count();
+    }
 }
