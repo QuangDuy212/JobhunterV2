@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Async; // Import cho @Async
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.Company;
@@ -21,6 +22,7 @@ import vn.hoidanit.jobhunter.domain.response.job.ResUpdateJob;
 import vn.hoidanit.jobhunter.repository.JobRepository;
 import vn.hoidanit.jobhunter.repository.SkillRespository;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
+import vn.hoidanit.jobhunter.util.constant.JobStatusEnum; // Import JobStatusEnum
 
 @Service
 public class JobService {
@@ -29,15 +31,47 @@ public class JobService {
     private final SkillService skillService;
     private final CompanyService companyService;
     private final UserService userService;
+    private final GeminiService geminiService; // Thêm GeminiService
 
     public JobService(JobRepository jobRepository, SkillRespository skillRespository, SkillService skillService,
-            CompanyService companyService,UserService userService) {
+            CompanyService companyService,UserService userService, GeminiService geminiService) { // Cập nhật Constructor
         this.jobRepository = jobRepository;
         this.skillRespository = skillRespository;
         this.skillService = skillService;
         this.companyService = companyService;
         this.userService = userService;
+        this.geminiService = geminiService; // Khởi tạo GeminiService
     }
+
+    /**
+     * Hàm này được gọi ngay sau khi Job được tạo.
+     * Nó chạy bất đồng bộ (@Async) để không làm người dùng chờ đợi.
+     * @param job Job Entity đã được lưu vào DB (với Status = REVIEWING)
+     */
+    @Async 
+    public void checkAndApproveJob(Job job) {
+        // Lấy mô tả công việc
+        String jobDescription = job.getDescription();
+        
+        System.out.println("Bắt đầu kiểm duyệt Job ID: " + job.getId());
+
+        // 1. GỌI AI ĐỂ KIỂM TRA MỨC ĐỘ AN TOÀN (blocking call trong luồng @Async)
+        boolean isSafe = geminiService.checkContentSafety(jobDescription);
+
+        // 2. CẬP NHẬT TRẠNG THÁI DỰA TRÊN KẾT QUẢ
+        if (isSafe) {
+            job.setStatus(JobStatusEnum.APPROVED);
+            System.out.println("Job ID " + job.getId() + " đã được AI APPROVE.");
+        } else {
+            job.setStatus(JobStatusEnum.REJECTED);
+            job.setActive(false);
+            System.out.println("Job ID " + job.getId() + " đã bị AI REJECT do nội dung phản cảm.");
+        }
+        
+        // Lưu lại trạng thái mới
+        this.jobRepository.save(job);
+    }
+
 
     public ResCreateJobDTO handleCreateJob(Job j) {
         // check skills
@@ -55,8 +89,11 @@ public class JobService {
             }
         }
 
-        // create job
+        // 1. Create job (Status mặc định là REVIEWING - đã được thiết lập trong Job Entity @PrePersist)
         Job currentJob = this.jobRepository.save(j);
+
+        // 2. Kích hoạt kiểm duyệt AI BẤT ĐỒNG BỘ
+        this.checkAndApproveJob(currentJob);
 
         // convert response
         ResCreateJobDTO dto = new ResCreateJobDTO();

@@ -13,6 +13,7 @@ import { fetchJob } from "@/redux/slice/jobSlide";
 import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
 import { sfIn } from "spring-filter-query-builder";
+import { JobStatusEnum } from "@/constant/common.enum";
 
 const JobPage = () => {
     const tableRef = useRef<ActionType>();
@@ -26,7 +27,7 @@ const JobPage = () => {
     const handleDeleteJob = async (id: string | undefined) => {
         if (id) {
             const res = await callDeleteJob(id);
-            if (res && res.data) {
+            if (res.statusCode === 200) {
                 message.success('Xóa Job thành công');
                 reloadTable();
             } else {
@@ -41,6 +42,28 @@ const JobPage = () => {
     const reloadTable = () => {
         tableRef?.current?.reload();
     }
+
+    const getStatusTag = (status: any) => {
+        let color = 'default';
+        switch (status) {
+            case JobStatusEnum.REVIEWING:
+                color = 'gold'; // Màu vàng cho đang duyệt
+                break;
+            case JobStatusEnum.APPROVED:
+                color = 'green'; // Màu xanh lá cho đã duyệt
+                break;
+            case JobStatusEnum.REJECTED:
+                color = 'red'; // Màu đỏ cho bị từ chối
+                break;
+            case JobStatusEnum.INACTIVE:
+                color = 'gray'; // Màu xám cho không hoạt động
+                break;
+            case JobStatusEnum.DRAFT:
+                color = 'blue'; // Màu xanh dương cho bản nháp
+                break;
+        }
+        return { color, label: status };
+    };
 
     const columns: ProColumns<IJob>[] = [
         {
@@ -96,12 +119,25 @@ const JobPage = () => {
             ),
         },
         {
-            title: 'Trạng thái',
+            title: 'Active',
             dataIndex: 'active',
             render(dom, entity, index, action, schema) {
                 return <>
                     <Tag color={entity.active ? "lime" : "red"} >
                         {entity.active ? "ACTIVE" : "INACTIVE"}
+                    </Tag>
+                </>
+            },
+            hideInSearch: true,
+        },
+
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            render(dom, entity, index, action, schema) {
+                return <>
+                    <Tag color={getStatusTag(entity.status).color}>
+                        {entity.status}
                     </Tag>
                 </>
             },

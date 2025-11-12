@@ -1,3 +1,5 @@
+import { JobStatusEnum } from "@/constant/common.enum";
+
 export interface IBackendRes<T> {
     error?: string | string[];
     message: string;
@@ -103,6 +105,7 @@ export interface IJob {
     startDate: Date;
     endDate: Date;
     active: boolean;
+    status: JobStatusEnum;
 
     createdBy?: string;
     isDeleted?: boolean;

@@ -27,6 +27,7 @@ import lombok.Getter;
 import lombok.Setter;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.constant.LevelEnum;
+import vn.hoidanit.jobhunter.util.constant.JobStatusEnum; // SỬ DỤNG ENUM MỚI
 
 @Entity
 @Table(name = "jobs")
@@ -43,6 +44,9 @@ public class Job {
     private double salary;
     private int quantity;
     private boolean active;
+
+    @Enumerated(EnumType.STRING)
+    private JobStatusEnum status; // ĐỔI SANG JOBSTATUSENUM
 
     @Enumerated(EnumType.STRING)
     private LevelEnum level;
@@ -77,6 +81,11 @@ public class Job {
                 ? SecurityUtil.getCurrentUserLogin().get()
                 : "";
         this.createdAt = Instant.now();
+        
+        // Thiết lập trạng thái mặc định là REVIEWING khi tạo mới
+        if (this.status == null) {
+            this.status = JobStatusEnum.REVIEWING;
+        }
     }
 
     @PreUpdate
