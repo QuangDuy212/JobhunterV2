@@ -13,6 +13,7 @@ import { CheckSquareOutlined } from "@ant-design/icons";
 import enUS from 'antd/lib/locale/en_US';
 import dayjs from 'dayjs';
 import { IJob, ISkill } from "@/types/backend";
+import { JobStatusEnum } from "@/constant/common.enum";
 
 interface ISkillSelect {
     label: string;
@@ -344,9 +345,10 @@ const ViewUpsertJob = (props: any) => {
                                     placeholder="dd/mm/yyyy"
                                 />
                             </Col>
+                            {(!dataUpdate?.id || (dataUpdate?.id && !(dataUpdate.status === JobStatusEnum.REJECTED))) &&
                             <Col span={24} md={6}>
                                 <ProFormSwitch
-                                    label="Trạng thái"
+                                    label="Active"
                                     name="active"
                                     checkedChildren="ACTIVE"
                                     unCheckedChildren="INACTIVE"
@@ -356,6 +358,7 @@ const ViewUpsertJob = (props: any) => {
                                     }}
                                 />
                             </Col>
+                             }
                             <Col span={24}>
                                 <ProForm.Item
                                     name="description"
