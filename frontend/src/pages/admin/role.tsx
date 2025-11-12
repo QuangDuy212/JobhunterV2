@@ -50,11 +50,11 @@ const RolePage = () => {
         if (id) {
             const res = await callDeleteRole(id);
             if (res && res.statusCode === 200) {
-                message.success('Xóa Role thành công');
+                message.success('Delete role successfully');
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -85,7 +85,7 @@ const RolePage = () => {
             sorter: true,
         },
         {
-            title: 'Trạng thái',
+            title: 'Active',
             dataIndex: 'active',
             render(dom, entity, index, action, schema) {
                 return <>
@@ -149,11 +149,11 @@ const RolePage = () => {
                     >
                         <Popconfirm
                             placement="leftTop"
-                            title={"Xác nhận xóa role"}
-                            description={"Bạn có chắc chắn muốn xóa role này ?"}
+                            title={"Confirm delete role"}
+                            description={"Are you sure delete this role ?"}
                             onConfirm={() => handleDeleteRole(entity.id)}
-                            okText="Xác nhận"
-                            cancelText="Hủy"
+                            okText="Confirm"
+                            cancelText="Cancel"
                         >
                             <span style={{ cursor: "pointer", margin: "0 10px" }}>
                                 <DeleteOutlined
@@ -213,7 +213,7 @@ const RolePage = () => {
             >
                 <DataTable<IRole>
                     actionRef={tableRef}
-                    headerTitle="Danh sách Roles (Vai Trò)"
+                    headerTitle="List Roles"
                     rowKey="id"
                     loading={isFetching}
                     columns={columns}
@@ -229,7 +229,7 @@ const RolePage = () => {
                             pageSize: meta.pageSize,
                             showSizeChanger: true,
                             total: meta.total,
-                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>) }
+                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} per {total} rows</div>) }
                         }
                     }
                     rowSelection={false}
@@ -240,7 +240,7 @@ const RolePage = () => {
                                 type="primary"
                                 onClick={() => setOpenModal(true)}
                             >
-                                Thêm mới
+                                New
                             </Button>
                         );
                     }}

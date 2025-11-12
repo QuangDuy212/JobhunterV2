@@ -33,7 +33,7 @@ const UserResume = (props: any) => {
 
     const columns: ColumnsType<IResume> = [
         {
-            title: 'STT',
+            title: 'No',
             key: 'index',
             width: 50,
             align: "center",
@@ -167,7 +167,7 @@ const JobByEmail = (props: any) => {
                 setSubscriber(res.data);
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -184,7 +184,7 @@ const JobByEmail = (props: any) => {
                 setSubscriber(res.data);
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }

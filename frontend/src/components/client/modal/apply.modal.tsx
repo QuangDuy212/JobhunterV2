@@ -42,7 +42,7 @@ const ApplyModal = (props: IProps) => {
                     setIsModalOpen(false);
                 } else {
                     notification.error({
-                        message: 'Có lỗi xảy ra',
+                        message: 'Error occur',
                         description: res.message
                     });
                 }
@@ -74,7 +74,7 @@ const ApplyModal = (props: IProps) => {
             if (info.file.status === 'done') {
                 message.success(`${info.file.name} file uploaded successfully`);
             } else if (info.file.status === 'error') {
-                message.error(info?.file?.error?.event?.message ?? "Đã có lỗi xảy ra khi upload file.")
+                message.error(info?.file?.error?.event?.message ?? "Đã Error occur khi upload file.")
             }
         },
     };
