@@ -83,6 +83,17 @@ public class CompanyController {
         return ResponseEntity.ok(null);
     }
 
+    @PostMapping("/companies/restore/{id}")
+    @ApiMessage("restore a company")
+    public ResponseEntity<Void> restoreCompany(@PathVariable("id") long id) throws IdInvalidException {
+        Optional<Company> company = this.companyService.fetchCompanyById(id);
+        if (!company.isPresent()) {
+            throw new IdInvalidException("Không tồn tại công ty với ID được truyền vào");
+        }
+        this.companyService.restoreCompany(id);
+        return ResponseEntity.ok(null);
+    }
+
     @GetMapping("/companies/count-all-companies")
     @ApiMessage("Fetch count all companies")
     public ResponseEntity<Long> countAllCompanies() {

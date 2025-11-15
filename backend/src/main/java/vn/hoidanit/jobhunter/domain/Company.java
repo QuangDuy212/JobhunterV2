@@ -39,6 +39,8 @@ public class Company {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+    @Column(nullable = false)
+    private int status = 1;
 
     @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
     @JsonIgnore

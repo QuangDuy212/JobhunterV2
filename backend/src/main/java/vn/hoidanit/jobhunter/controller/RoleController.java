@@ -95,4 +95,11 @@ public class RoleController {
         return ResponseEntity.ok(null);
     }
 
+    @PostMapping("/roles/restore/{id}")
+    @ApiMessage("restore a role")
+    public ResponseEntity<Void> restoreRole(@PathVariable("id") long id) {
+        this.roleService.restoreRole(id);
+        return ResponseEntity.ok(null);
+    }
+
 }

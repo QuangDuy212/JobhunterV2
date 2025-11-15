@@ -1,5 +1,6 @@
 package vn.hoidanit.jobhunter.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,12 +71,35 @@ public class CompanyService {
     public void handleDeleteCompany(long id) {
         Optional<Company> comOptional = this.fetchCompanyById(id);
         if (comOptional.isPresent()) {
-            Company com = comOptional.get();
-            // fetch all users belong to this company
-            List<User> users = this.userRepository.findByCompany(com);
-            this.userRepository.deleteAll(users);
+            Company company = comOptional.get();
+            company.setStatus(0);
+            company.setUpdatedAt(Instant.now());
+            this.companyRepository.save(company);
+
+            List<User> users = this.userRepository.findByCompany(company);
+            users.forEach(user -> {
+                user.setStatus(0);
+                user.setUpdatedAt(Instant.now());
+            });
+            this.userRepository.saveAll(users);
         }
-        this.companyRepository.deleteById(id);
+    }
+
+    public void restoreCompany(long id) {
+        Optional<Company> comOptional = this.fetchCompanyById(id);
+        if (comOptional.isPresent()) {
+            Company company = comOptional.get();
+            company.setStatus(1);
+            company.setUpdatedAt(Instant.now());
+            this.companyRepository.save(company);
+
+            List<User> users = this.userRepository.findByCompany(company);
+            users.forEach(user -> {
+                user.setStatus(1);
+                user.setUpdatedAt(Instant.now());
+            });
+            this.userRepository.saveAll(users);
+        }
     }
 
     public boolean isExistId(long id) {

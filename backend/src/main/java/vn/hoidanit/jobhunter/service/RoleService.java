@@ -1,5 +1,6 @@
 package vn.hoidanit.jobhunter.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -92,6 +93,20 @@ public class RoleService {
     }
 
     public void handleDeleteARole(long id) {
-        this.roleRepository.deleteById(id);
+        Role role = this.fetchRoleById(id);
+        if (role != null) {
+            role.setStatus(0);
+            role.setUpdatedAt(Instant.now());
+            this.roleRepository.save(role);
+        }
+    }
+
+    public void restoreRole(long id) {
+        Role role = this.fetchRoleById(id);
+        if (role != null) {
+            role.setStatus(1);
+            role.setUpdatedAt(Instant.now());
+            this.roleRepository.save(role);
+        }
     }
 }

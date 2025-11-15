@@ -55,6 +55,8 @@ public class User {
     private String createdBy;
     private String updatedBy;
 
+    @Column(nullable = false)
+    private int status = 1;
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;

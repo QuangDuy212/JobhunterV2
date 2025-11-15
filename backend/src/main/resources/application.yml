@@ -9,9 +9,9 @@ spring:
     port: 8080
 
   datasource:
-    url: jdbc:mysql://localhost:3308/JobHunterV2
+    url: jdbc:mysql://localhost:3306/JobHunterV2
     username: root
-    password: 1012004
+    password: phuong4869
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
