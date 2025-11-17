@@ -395,14 +395,14 @@ const DashboardPage = () => {
                         style={{ height: '100%' }} // Đảm bảo chiều cao đồng đều
                     >
                         {/* Wrapper để tạo thanh cuộn nếu nội dung quá dài */}
-                        <div style={{ height: 350, overflowY: 'auto' }}>
+                        <div style={{ height: 410, overflowY: 'auto' }}>
                             <List
                                 itemLayout="horizontal"
                                 dataSource={auditLogs} // Sử dụng state auditLogs (10 item mới nhất)
                                 renderItem={(item: any) => (
                                     <List.Item>
                                         <List.Item.Meta
-                                            avatar={<HistoryOutlined style={{ fontSize: '18px', color: '#1890ff', paddingTop: '4px' }} />}
+                                            avatar={<HistoryOutlined style={{ fontSize: '24px', color: '#1890ff', paddingTop: '4px' }} />}
                                             title={
                                                 <Space size={4}>
                                                     {getLogTag(item.action)}
@@ -411,9 +411,9 @@ const DashboardPage = () => {
                                             }
                                             description={
                                                 <>
-                                                    <Text style={{ fontSize: '12px' }}>{item.details}</Text>
+                                                    <Text style={{ fontSize: '16px' }}>{item.details}</Text>
                                                     <br />
-                                                    <Text type="secondary" style={{ fontSize: '11px' }}>{new Date(item.timestamp).toLocaleString()}</Text>
+                                                    <Text type="secondary" style={{ fontSize: '14px' }}>{new Date(item.timestamp).toLocaleString()}</Text>
                                                 </>
                                             }
                                         />
