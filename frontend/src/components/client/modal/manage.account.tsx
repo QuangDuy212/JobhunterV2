@@ -25,6 +25,7 @@ const UserResume = (props: any) => {
             const res = await callFetchResumeByUser();
             if (res && res.data) {
                 setListCV(res.data.result as IResume[])
+                console.log(res.data.result);
             }
             setIsFetching(false);
         }
@@ -73,7 +74,7 @@ const UserResume = (props: any) => {
             render(value, record, index) {
                 return (
                     <a
-                        href={`${import.meta.env.VITE_BACKEND_URL}/storage/resume/${record?.url}`}
+                        href={`${import.meta.env.VITE_FILE_UPLOAD_URL}/resume/${record?.url}`}
                         target="_blank"
                     >Chi tiết</a>
                 )
