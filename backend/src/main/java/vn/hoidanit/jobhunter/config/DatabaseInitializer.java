@@ -44,12 +44,15 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Delete a company", "/api/v1/companies/{id}", "DELETE", "COMPANIES"));
             arr.add(new Permission("Get a company by id", "/api/v1/companies/{id}", "GET", "COMPANIES"));
             arr.add(new Permission("Get companies with pagination", "/api/v1/companies", "GET", "COMPANIES"));
+            arr.add(new Permission("Get count all companies", "/api/v1/companies/count-all-companies", "GET", "COMPANIES"));
 
             arr.add(new Permission("Create a job", "/api/v1/jobs", "POST", "JOBS"));
             arr.add(new Permission("Update a job", "/api/v1/jobs", "PUT", "JOBS"));
             arr.add(new Permission("Delete a job", "/api/v1/jobs/{id}", "DELETE", "JOBS"));
             arr.add(new Permission("Get a job by id", "/api/v1/jobs/{id}", "GET", "JOBS"));
             arr.add(new Permission("Get jobs with pagination", "/api/v1/jobs", "GET", "JOBS"));
+            arr.add(new Permission("Get count all jobs", "/api/v1/jobs/count-all-jobs", "GET", "JOBS"));
+            arr.add(new Permission("Get jobs by skill id", "/api/v1/jobs/fetch-by-skill/(id)", "GET", "JOBS"));
 
             arr.add(new Permission("Create a permission", "/api/v1/permissions", "POST", "PERMISSIONS"));
             arr.add(new Permission("Update a permission", "/api/v1/permissions", "PUT", "PERMISSIONS"));
@@ -62,6 +65,9 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Delete a resume", "/api/v1/resumes/{id}", "DELETE", "RESUMES"));
             arr.add(new Permission("Get a resume by id", "/api/v1/resumes/{id}", "GET", "RESUMES"));
             arr.add(new Permission("Get resumes with pagination", "/api/v1/resumes", "GET", "RESUMES"));
+            arr.add(new Permission("Get count all resumes", "/api/v1/resumes/count-all-resumes", "GET", "RESUMES"));
+            arr.add(new Permission("Get count resumes by time", "/api/v1/resumes/count-resumes-by-time", "GET", "RESUMES"));
+            arr.add(new Permission("Get count resumes by status", "/api/v1/resumes/count/count-by-status", "GET", "RESUMES"));
 
             arr.add(new Permission("Create a role", "/api/v1/roles", "POST", "ROLES"));
             arr.add(new Permission("Update a role", "/api/v1/roles", "PUT", "ROLES"));
@@ -74,6 +80,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Delete a user", "/api/v1/users/{id}", "DELETE", "USERS"));
             arr.add(new Permission("Get a user by id", "/api/v1/users/{id}", "GET", "USERS"));
             arr.add(new Permission("Get users with pagination", "/api/v1/users", "GET", "USERS"));
+            arr.add(new Permission("Get count all users", "/api/v1/users/count-all-users", "GET", "USERS"));
 
             arr.add(new Permission("Create a subscriber", "/api/v1/subscribers", "POST", "SUBSCRIBERS"));
             arr.add(new Permission("Update a subscriber", "/api/v1/subscribers", "PUT", "SUBSCRIBERS"));
@@ -83,6 +90,9 @@ public class DatabaseInitializer implements CommandLineRunner {
 
             arr.add(new Permission("Download a file", "/api/v1/files", "POST", "FILES"));
             arr.add(new Permission("Upload a file", "/api/v1/files", "GET", "FILES"));
+
+            arr.add(new Permission("Chat with AI", "/socket.io/", "GET", "CHATBOT"));
+            arr.add(new Permission("Fetch 10 audit-logs", "/api/v1/admin/audit-logs", "GET", "HISTORY"));
 
             this.permissionRepository.saveAll(arr);
         }
@@ -97,6 +107,28 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminRole.setPermissions(allPermissions);
 
             this.roleRepository.save(adminRole);
+
+            Role userRole = new Role();
+            userRole.setName("USER");
+            userRole.setDescription("USER has basic permissions");
+            userRole.setActive(true);
+            List<Permission> pUsArr = new ArrayList<>();
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/companies/{id}", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/companies", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/jobs/{id}", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/jobs", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/resumes", "POST"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/resumes/{id}", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/users/{id}", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/subscribers", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/subscribers", "POST"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/files", "POST"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/files", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/socket.io/", "GET"));
+
+            userRole.setPermissions(pUsArr);
+
+            this.roleRepository.save(userRole);
         }
 
         if (countUsers == 0) {
@@ -114,6 +146,21 @@ public class DatabaseInitializer implements CommandLineRunner {
             }
 
             this.userRepository.save(adminUser);
+
+            User user = new User();
+            user.setEmail("user@gmail.com");
+            user.setAddress("hn");
+            user.setAge(25);
+            user.setGender(GenderEnum.MALE);
+            user.setName("I'm a user");
+            user.setPassword(this.passwordEncoder.encode("123456"));
+
+            Role userRole = this.roleRepository.findByName("USER");
+            if (userRole != null) {
+                user.setRole(userRole);
+            }
+
+            this.userRepository.save(user);
         }
 
         if (countPermissions > 0 && countRoles > 0 && countUsers > 0) {

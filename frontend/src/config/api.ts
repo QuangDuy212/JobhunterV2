@@ -281,3 +281,8 @@ export const callFetchSubscriberById = (id: string) => {
     return axios.get<IBackendRes<ISubscribers>>(`/api/v1/subscribers/${id}`);
 }
 
+// MODULE AUDIT LOG
+export const callFetchAllLog = () =>{
+    return axios.get<IBackendRes<any>>(`/api/v1/admin/audit-logs`);
+}
+

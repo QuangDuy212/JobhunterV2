@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Card, Col, Row, Typography, Space, Button, Input, Divider } from 'antd';
-import { RiseOutlined, FileTextOutlined, TeamOutlined, BarChartOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { Card, Col, Row, Typography, Space, Button, Input, Divider, List, Tag } from 'antd';
+import { RiseOutlined, FileTextOutlined, TeamOutlined, BarChartOutlined, EnvironmentOutlined, HistoryOutlined } from '@ant-design/icons';
 
 // --- Import từ Chart.js và react-chartjs-2 ---
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
@@ -16,7 +16,7 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
-import { callCountAllJobs, callCountAllResumes, callCountAllUsers, callCountResumesByStatus, callCountResumesByTime, callFetchAllSkill, callFetchJobsBySkill } from '@/config/api';
+import { callCountAllJobs, callCountAllResumes, callCountAllUsers, callCountResumesByStatus, callCountResumesByTime, callFetchAllLog, callFetchAllSkill, callFetchJobsBySkill } from '@/config/api';
 import { set } from 'lodash';
 
 // Đăng ký các thành phần cần thiết của Chart.js
@@ -105,6 +105,7 @@ const DashboardPage = () => {
     const [resumesBy12Months, setResumesBy12Months] = React.useState<number[]>([]);
     const [jobsBySkill, setJobsBySkill] = React.useState<{ skill: string; count: number }[]>([]);
     const [listSkills, setListSkills] = React.useState<string[]>([]);
+    const [auditLogs, setAuditLogs] = React.useState<any[]>([]);
     const [resumesByStatus, setResumesByStatus] = React.useState<{ status: string; count: number }[]>([]);
 
     const lineOptions = {
@@ -210,6 +211,17 @@ const DashboardPage = () => {
         fetchResumesBy12Months();
         fetchJobsBySkill();
         fetchCountResumesByStatus();
+        fetchAuditLogs();
+        // 1. Tải dữ liệu ngay lập tức
+        fetchAuditLogs();
+
+        // 2. Thiết lập tự động tải lại mỗi 10 giây
+        const intervalId = setInterval(() => {
+            fetchAuditLogs();
+        }, 10000); // 10000ms = 10 giây
+
+        // 3. Dọn dẹp khi component unmount
+        return () => clearInterval(intervalId);
     }, []);
 
     const fetchCountAllUsers = async () => {
@@ -237,7 +249,7 @@ const DashboardPage = () => {
 
     const fetchCountResumesByStatus = async () => {
         const res = await callCountResumesByStatus();
-        if (res && res.data){
+        if (res && res.data) {
             const total = res.data.map((item: any) => item.count).reduce((a: number, b: number) => a + b, 0);
             setResumesByStatus(res.data.map((item: any) => ({
                 status: item.status,
@@ -280,6 +292,26 @@ const DashboardPage = () => {
                     });
                 }
             });
+    }
+
+    const getLogTag = (action: string) => {
+        if (action.includes('DENIED') || action.includes('DELETE') || action.includes('REJECTED') || action.includes('FAILURE') || action.includes('ACCESS_DENIED')) {
+            return <Tag color="red">{action}</Tag>;
+        }
+        if (action.includes('GRANTED') || action.includes('CREATE') || action.includes('APPROVED')) {
+            return <Tag color="green">{action}</Tag>;
+        }
+        if (action.includes('LOGIN') || action.includes('REVIEWING') || action.includes('GET')) {
+            return <Tag color="blue">{action}</Tag>;
+        }
+        return <Tag color="default">{action}</Tag>;
+    };
+
+    const fetchAuditLogs = async () => {
+        const res = await callFetchAllLog();
+        if (res && res.data) {
+            setAuditLogs(res.data); // Lấy 10 log mới nhất
+        }
     }
     return (
         <div style={{ padding: 24 }}>
@@ -348,10 +380,52 @@ const DashboardPage = () => {
 
             {/* Hàng 4: Biểu đồ Donut (Dùng Chart.js) */}
             <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
-                <Col span={24}>
+                <Col xs={24} lg={12}>
                     <Card title={<AntdTitle level={4} style={{ margin: 0 }}>Application Status Distribution</AntdTitle>} bordered={false}>
                         <div style={{ maxWidth: 400, margin: '0 auto', padding: '20px 0' }}>
                             <Doughnut options={doughnutOptions} data={statusData} />
+                        </div>
+                    </Card>
+                </Col>
+                {/* CỘT 2: LỊCH SỬ HOẠT ĐỘNG MỚI */}
+                <Col xs={24} lg={12}>
+                    <Card
+                        title={<AntdTitle level={4} style={{ margin: 0 }}>Lịch sử Hoạt động Gần đây</AntdTitle>}
+                        bordered={false}
+                        style={{ height: '100%' }} // Đảm bảo chiều cao đồng đều
+                    >
+                        {/* Wrapper để tạo thanh cuộn nếu nội dung quá dài */}
+                        <div style={{ height: 350, overflowY: 'auto' }}>
+                            <List
+                                itemLayout="horizontal"
+                                dataSource={auditLogs} // Sử dụng state auditLogs (10 item mới nhất)
+                                renderItem={(item: any) => (
+                                    <List.Item>
+                                        <List.Item.Meta
+                                            avatar={<HistoryOutlined style={{ fontSize: '18px', color: '#1890ff', paddingTop: '4px' }} />}
+                                            title={
+                                                <Space size={4}>
+                                                    {getLogTag(item.action)}
+                                                    <Text strong>{item.performedBy}</Text>
+                                                </Space>
+                                            }
+                                            description={
+                                                <>
+                                                    <Text style={{ fontSize: '12px' }}>{item.details}</Text>
+                                                    <br />
+                                                    <Text type="secondary" style={{ fontSize: '11px' }}>{new Date(item.timestamp).toLocaleString()}</Text>
+                                                </>
+                                            }
+                                        />
+                                    </List.Item>
+                                )}
+                            />
+                            {/* Hiển thị message nếu không có log */}
+                            {auditLogs.length === 0 && (
+                                <div style={{ textAlign: 'center', padding: '50px 0' }}>
+                                    <Text type="secondary">Không có hoạt động gần đây nào.</Text>
+                                </div>
+                            )}
                         </div>
                     </Card>
                 </Col>
