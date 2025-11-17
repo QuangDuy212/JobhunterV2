@@ -214,7 +214,7 @@ export default function ChatBox() {
     <div style={styles.mainContainer}>
       {/* 🚨 HEADER CHAT ĐƯỢC THÊM VÀO ĐÂY */}
       <div style={styles.chatHeader}>
-        Chat với Bot 🤖
+        Chat Bot 🤖
       </div>
 
       {/* Vùng hiển thị chat */}
@@ -256,7 +256,7 @@ export default function ChatBox() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           style={styles.inputField}
-          placeholder="Nhập tin nhắn..."
+          placeholder="Enter..."
           disabled={isButtonDisabled}
         />
         <button
@@ -266,14 +266,14 @@ export default function ChatBox() {
           onMouseEnter={() => setIsButtonHovered(true)}
           onMouseLeave={() => setIsButtonHovered(false)}
         >
-          {isSending ? "Đang gửi..." : "Gửi"}
+          {isSending ? "Sending..." : "Send"}
         </button>
       </div>
 
       {/* Trạng thái kết nối */}
       {readyState !== ReadyState.OPEN && (
         <div style={styles.connectionStatus}>
-          Kết nối WebSocket bị đóng hoặc đang chờ kết nối lại (Trạng thái: {ReadyState[readyState]}).
+          The WebSocket connection is closed or waiting to reconnect (State: {ReadyState[readyState]}).
         </div>
       )}
     </div>

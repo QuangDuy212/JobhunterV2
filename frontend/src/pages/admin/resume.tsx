@@ -29,11 +29,11 @@ const ResumePage = () => {
         if (id) {
             const res = await callDeleteResume(id);
             if (res && res.data) {
-                message.success('Xóa Resume thành công');
+                message.success('Delete resume successfully');
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -62,7 +62,7 @@ const ResumePage = () => {
             hideInSearch: true,
         },
         {
-            title: 'Trạng Thái',
+            title: 'Status',
             dataIndex: 'status',
             sorter: true,
             renderFormItem: (item, props, form) => (
@@ -76,7 +76,7 @@ const ResumePage = () => {
                         APPROVED: 'APPROVED',
                         REJECTED: 'REJECTED',
                     }}
-                    placeholder="Chọn level"
+                    placeholder="Choose level"
                 />
             ),
         },
@@ -137,11 +137,11 @@ const ResumePage = () => {
 
                     {/* <Popconfirm
                         placement="leftTop"
-                        title={"Xác nhận xóa resume"}
-                        description={"Bạn có chắc chắn muốn xóa resume này ?"}
+                        title={"Confirm xóa resume"}
+                        description={"Are you sure delete resume này ?"}
                         onConfirm={() => handleDeleteResume(entity.id)}
-                        okText="Xác nhận"
-                        cancelText="Hủy"
+                        okText="Confirm"
+                        cancelText="Cancel"
                     >
                         <span style={{ cursor: "pointer", margin: "0 10px" }}>
                             <DeleteOutlined
@@ -204,7 +204,7 @@ const ResumePage = () => {
             >
                 <DataTable<IResume>
                     actionRef={tableRef}
-                    headerTitle="Danh sách Resumes"
+                    headerTitle="List Resumes"
                     rowKey="id"
                     loading={isFetching}
                     columns={columns}
@@ -220,7 +220,7 @@ const ResumePage = () => {
                             pageSize: meta.pageSize,
                             showSizeChanger: true,
                             total: meta.total,
-                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>) }
+                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} per {total} rows</div>) }
                         }
                     }
                     rowSelection={false}

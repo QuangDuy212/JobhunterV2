@@ -51,7 +51,7 @@ const ModalRole = (props: IProps) => {
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -62,12 +62,12 @@ const ModalRole = (props: IProps) => {
             }
             const res = await callCreateRole(role);
             if (res.data) {
-                message.success("Thêm mới role thành công");
+                message.success("New role thành công");
                 handleReset();
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -104,7 +104,7 @@ const ModalRole = (props: IProps) => {
                         icon: <CheckSquareOutlined />
                     },
                     searchConfig: {
-                        resetText: "Hủy",
+                        resetText: "Cancel",
                         submitText: <>{singleRole?.id ? "Cập nhật" : "Tạo mới"}</>,
                     }
                 }}

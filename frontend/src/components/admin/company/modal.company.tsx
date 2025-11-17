@@ -67,7 +67,7 @@ const ModalCompany = (props: IProps) => {
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -75,12 +75,12 @@ const ModalCompany = (props: IProps) => {
             //create
             const res = await callCreateCompany(name, address, value, dataLogo[0].name);
             if (res.data) {
-                message.success("Thêm mới company thành công");
+                message.success("New company thành công");
                 handleReset();
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -144,7 +144,7 @@ const ModalCompany = (props: IProps) => {
         }
         if (info.file.status === 'error') {
             setLoadingUpload(false);
-            message.error(info?.file?.error?.event?.message ?? "Đã có lỗi xảy ra khi upload file.")
+            message.error(info?.file?.error?.event?.message ?? "Đã Error occur khi upload file.")
         }
     };
 
@@ -195,7 +195,7 @@ const ModalCompany = (props: IProps) => {
                                 icon: <CheckSquareOutlined />
                             },
                             searchConfig: {
-                                resetText: "Hủy",
+                                resetText: "Cancel",
                                 submitText: <>{dataInit?.id ? "Cập nhật" : "Tạo mới"}</>,
                             }
                         }}
@@ -226,7 +226,7 @@ const ModalCompany = (props: IProps) => {
                                     <ConfigProvider locale={enUS}>
                                         <Upload
                                             name="logo"
-                                            listType="picture-card"
+                                            liNoype="picture-card"
                                             className="avatar-uploader"
                                             maxCount={1}
                                             multiple={false}
