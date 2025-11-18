@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { MonitorOutlined } from "@ant-design/icons";
 import { SKILLS_LIST } from "@/config/utils";
 import { useAppSelector } from "@/redux/hooks";
+import ChangePasswordForm from "./change.password";
 
 interface IProps {
     open: boolean;
@@ -258,7 +259,7 @@ const ManageAccount = (props: IProps) => {
         {
             key: 'user-password',
             label: `Thay đổi mật khẩu`,
-            children: `//todo`,
+            children: <ChangePasswordForm/>,
         },
     ];
 
