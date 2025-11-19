@@ -1,3 +1,4 @@
+
 import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, IPermission, IRole, ISkill, ISubscribers } from '@/types/backend';
 import axios from 'config/axios-customize';
 
@@ -122,6 +123,10 @@ export const callDeleteUser = (id: string) => {
 
 export const callFetchUser = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/v1/users?${query}`);
+}
+
+export const callFetchUserById = (id: string) => {
+    return axios.get<IBackendRes<IUser>>(`/api/v1/users/${id}`);
 }
 
 export const callCountAllUsers = () => {
