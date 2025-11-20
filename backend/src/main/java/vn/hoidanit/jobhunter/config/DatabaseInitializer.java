@@ -51,6 +51,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Delete a job", "/api/v1/jobs/{id}", "DELETE", "JOBS"));
             arr.add(new Permission("Get a job by id", "/api/v1/jobs/{id}", "GET", "JOBS"));
             arr.add(new Permission("Get jobs with pagination", "/api/v1/jobs", "GET", "JOBS"));
+            arr.add(new Permission("Get jobs for admin", "/api/v1/admin-jobs", "GET", "JOBS"));
             arr.add(new Permission("Get count all jobs", "/api/v1/jobs/count-all-jobs", "GET", "JOBS"));
             arr.add(new Permission("Get jobs by skill id", "/api/v1/jobs/fetch-by-skill/(id)", "GET", "JOBS"));
 
@@ -76,6 +77,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Get roles with pagination", "/api/v1/roles", "GET", "ROLES"));
 
             arr.add(new Permission("Create a user", "/api/v1/users", "POST", "USERS"));
+            arr.add(new Permission("Change password", "/api/v1/auth/change-password", "POST", "USERS"));
             arr.add(new Permission("Update a user", "/api/v1/users", "PUT", "USERS"));
             arr.add(new Permission("Delete a user", "/api/v1/users/{id}", "DELETE", "USERS"));
             arr.add(new Permission("Get a user by id", "/api/v1/users/{id}", "GET", "USERS"));
@@ -120,6 +122,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/resumes", "POST"));
             pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/resumes/{id}", "GET"));
             pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/users/{id}", "GET"));
+            pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/auth/change-password", "POST"));
             pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/subscribers", "GET"));
             pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/subscribers", "POST"));
             pUsArr.add(this.permissionRepository.findByApiPathAndMethod("/api/v1/files", "POST"));

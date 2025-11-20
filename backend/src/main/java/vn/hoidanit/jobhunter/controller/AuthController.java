@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.request.ReqChangePasswordDTO;
 import vn.hoidanit.jobhunter.domain.request.ReqLoginDTO;
 import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResLoginDTO;
@@ -205,5 +206,21 @@ public class AuthController {
                 // convert to ResCreateUserDTO to display
                 ResCreateUserDTO res = this.userService.convertToResCreateUserDTO(ericUser);
                 return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        }
+
+        @PostMapping("/auth/change-password")
+        @ApiMessage("Change password successfully")
+        public ResponseEntity<Void> changePassword(@Valid @RequestBody ReqChangePasswordDTO changePasswordDTO)
+                throws IdInvalidException {
+                String email = SecurityUtil.getCurrentUserLogin().isPresent()
+                                 ? SecurityUtil.getCurrentUserLogin().get() : "";
+
+                if (email.isEmpty()) {
+                 throw new IdInvalidException("Bạn cần phải đăng nhập để thay đổi mật khẩu!");
+                }
+        
+                this.userService.handleChangePassword(email, changePasswordDTO);
+        
+                return ResponseEntity.ok().body(null);
         }
 }

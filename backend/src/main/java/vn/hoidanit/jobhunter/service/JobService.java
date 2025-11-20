@@ -201,7 +201,7 @@ public class JobService {
         return null;
     }
 
-    public ResultPaginationDTO fetchAllJobs(Specification<Job> spec, Pageable pageable) {
+    public ResultPaginationDTO fetchAllJobsForAdmin(Specification<Job> spec, Pageable pageable) {
 
         ResultPaginationDTO rs = new ResultPaginationDTO();
         
@@ -214,6 +214,35 @@ public class JobService {
             criteriaBuilder.equal(root.get("company").get("id"), currentUserDB.getCompany().getId());
             spec = spec == null ? companySpec : spec.and(companySpec);
         }
+        Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
+
+        List<Job> listJob = pageJob.getContent();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageJob.getTotalPages());
+        mt.setTotal(pageJob.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(listJob);
+        return rs;
+    }
+
+    public ResultPaginationDTO fetchAllJobsForUser(Specification<Job> spec, Pageable pageable) {
+
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get()
+        : "";
+        
+        User currentUserDB = this.userService.handleGetUserByUsername(email);
+        // if(currentUserDB.getCompany() != null){
+        //     Specification<Job> companySpec = (root, query, criteriaBuilder) -> 
+        //     criteriaBuilder.equal(root.get("company").get("id"), currentUserDB.getCompany().getId());
+        //     spec = spec == null ? companySpec : spec.and(companySpec);
+        // }
         Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
 
         List<Job> listJob = pageJob.getContent();
