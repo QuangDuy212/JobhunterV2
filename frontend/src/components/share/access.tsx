@@ -14,18 +14,21 @@ const Access = (props: IProps) => {
     const [allow, setAllow] = useState<boolean>(true);
 
     const permissions = useAppSelector(state => state.account.user.role.permissions);
+    const user = useAppSelector(state => state.account.user);
 
     useEffect(() => {
-        if (permissions?.length) {
-            const check = permissions.find(item =>
-                item.apiPath === permission.apiPath
-                && item.method === permission.method
-                && item.module === permission.module
-            )
-            if (check) {
-                setAllow(true)
-            } else
-                setAllow(false);
+        if (permission) {
+            if (permissions?.length) {
+                const check = permissions.find(item =>
+                    item.apiPath === permission.apiPath
+                    && item.method === permission.method
+                    && item.module === permission.module
+                )
+                if (check) {
+                    setAllow(true)
+                } else
+                    setAllow(false);
+            }
         }
     }, [permissions])
 
@@ -35,7 +38,7 @@ const Access = (props: IProps) => {
                 <>{props.children}</>
                 :
                 <>
-                    {hideChildren === false ?
+                    {hideChildren === false || user.role.name == "USER" ?
                         <Result
                             status="403"
                             title="Truy cập bị từ chối"

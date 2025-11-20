@@ -71,11 +71,11 @@ const LayoutAdmin = () => {
             )
 
             const full = [
-                {
+                ...(user.role.name!="USER" || ACL_ENABLE === 'false' ? [{
                     label: <Link to='/admin'>Dashboard</Link>,
                     key: '/admin',
                     icon: <AppstoreOutlined />
-                },
+                }] : []),
                 ...(viewCompany || ACL_ENABLE === 'false' ? [{
                     label: <Link to='/admin/company'>Company</Link>,
                     key: '/admin/company',

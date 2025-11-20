@@ -65,11 +65,18 @@ public class JobController {
         return ResponseEntity.ok(null);
     }
 
+    @GetMapping("/admin-jobs")
+    @ApiMessage("Fetch all jobs")
+    public ResponseEntity<ResultPaginationDTO> fetchAllJobsForAdmin(@Filter Specification<Job> spec,
+            Pageable pageable) throws IdInvalidException {
+        return ResponseEntity.ok().body(this.jobService.fetchAllJobsForAdmin(spec, pageable));
+    }
+
     @GetMapping("/jobs")
     @ApiMessage("Fetch all jobs")
-    public ResponseEntity<ResultPaginationDTO> fetchAllJobs(@Filter Specification<Job> spec,
+    public ResponseEntity<ResultPaginationDTO> fetchAllJobsForUser(@Filter Specification<Job> spec,
             Pageable pageable) throws IdInvalidException {
-        return ResponseEntity.ok().body(this.jobService.fetchAllJobs(spec, pageable));
+        return ResponseEntity.ok().body(this.jobService.fetchAllJobsForUser(spec, pageable));
     }
 
     @GetMapping("/jobs/{id}")

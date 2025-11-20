@@ -60,7 +60,7 @@ const ModalUser = (props: IProps) => {
                 age,
                 gender,
                 address,
-                role: { id: role.value, name: "" },
+                role: { id: role.value, name: role.label },
                 company: {
                     id: company.value,
                     name: company.label
