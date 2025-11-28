@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.domain;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -40,6 +41,8 @@ public class Role {
     private String createdBy;
     private Instant updatedAt;
     private String updatedBy;
+    private boolean deleted = false;
+    private LocalDateTime deletedAt;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "roles" })

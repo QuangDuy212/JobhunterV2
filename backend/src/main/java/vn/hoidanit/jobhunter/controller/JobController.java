@@ -20,6 +20,7 @@ import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.Job;
 import vn.hoidanit.jobhunter.domain.Skill;
+import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResCreateJobDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResUpdateJob;
@@ -54,9 +55,9 @@ public class JobController {
         return ResponseEntity.ok().body(this.jobService.handleUpdateJob(reqJob));
     }
 
-    @DeleteMapping("/jobs/{id}")
-    @ApiMessage("delete job by id")
-    public ResponseEntity<Void> deleteSkill(@PathVariable("id") long id) throws IdInvalidException {
+    @DeleteMapping("/jobs/hard/{id}")
+    @ApiMessage("hard delete job by id")
+    public ResponseEntity<Void> deleteJob(@PathVariable("id") long id) throws IdInvalidException {
         boolean checkExist = this.jobService.isExistId(id);
         if (!checkExist) {
             throw new IdInvalidException("Job not found");
@@ -65,11 +66,39 @@ public class JobController {
         return ResponseEntity.ok(null);
     }
 
+    @DeleteMapping("/jobs/{id}")
+    @ApiMessage("delete job by id")
+    public ResponseEntity<Void> doftDeleteJob(@PathVariable("id") long id) throws IdInvalidException {
+        boolean checkExist = this.jobService.isExistId(id);
+        if (!checkExist) {
+            throw new IdInvalidException("Job not found");
+        }
+        this.jobService.softDeleteJob(id);
+        return ResponseEntity.ok(null);
+    }
+    @PutMapping("/jobs/restore/{id}")
+    @ApiMessage("restore job by id")
+    public ResponseEntity<?> restoreJob(@PathVariable("id") long id) throws IdInvalidException {
+        boolean checkExist = this.jobService.isExistId(id);
+        if (!checkExist) {
+            throw new IdInvalidException("Job not found");
+        }
+        //TODO: process PUT request
+        this.jobService.restoreJob(id);
+        return ResponseEntity.ok(null);
+    }
+    
     @GetMapping("/jobs")
     @ApiMessage("Fetch all jobs")
     public ResponseEntity<ResultPaginationDTO> fetchAllJobs(@Filter Specification<Job> spec,
             Pageable pageable) throws IdInvalidException {
         return ResponseEntity.ok().body(this.jobService.fetchAllJobs(spec, pageable));
+    }
+    @GetMapping("/jobs/deleted")
+    @ApiMessage("Fetch deleted jobs")
+    public ResponseEntity<ResultPaginationDTO> fetchDeletedJobs(@Filter Specification<Job> spec,
+            Pageable pageable) throws IdInvalidException {
+        return ResponseEntity.ok().body(this.jobService.fetchDeletedJobs(spec, pageable));
     }
 
     @GetMapping("/jobs/{id}")

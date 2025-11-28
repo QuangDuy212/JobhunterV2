@@ -63,16 +63,37 @@ public class UserController {
 
     @DeleteMapping("/users/{id}")
     @ApiMessage("delete user by id")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<Void> softDeleteUser(@PathVariable("id") long id) throws IdInvalidException {
         User currentUser = this.userService.fetchUserById(id);
         if (currentUser == null) {
             throw new IdInvalidException("User với id = " + id + " không tồn tại");
         }
-        this.userService.handleDeleteUser(id);
+        this.userService.softDeleteUser(id);
         // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
         return ResponseEntity.ok(null);
     }
-
+    @DeleteMapping("/users/hard/{id}")
+    @ApiMessage("delete user by id")
+    public ResponseEntity<Void> hardDeleteUser(@PathVariable("id") long id) throws IdInvalidException {
+        User currentUser = this.userService.fetchUserById(id);
+        if (currentUser == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+        }
+        this.userService.hardDeleteUser(id);
+        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
+        return ResponseEntity.ok(null);
+    }
+    @PutMapping("/users/restore/{id}")
+    @ApiMessage("restore user by id")
+    public ResponseEntity<?> restoreUser(@PathVariable("id") long id) throws IdInvalidException {
+        User currentUser = this.userService.fetchUserById(id);
+        if (currentUser == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+        }
+        //TODO: process PUT request
+        this.userService.restore(id);
+        return ResponseEntity.ok(null);
+    }
     @GetMapping("/users/{id}")
     @ApiMessage("fetch user by id")
     public ResponseEntity<ResUserDTO> fetchUserById(@PathVariable("id") long id) throws IdInvalidException {
@@ -86,7 +107,7 @@ public class UserController {
         // return ResponseEntity.status(HttpStatus.OK).body(user);
         return ResponseEntity.ok(res);
     }
-
+    
     @GetMapping("/users")
     @ApiMessage("fetch all users")
     public ResponseEntity<ResultPaginationDTO> fetchAllUsers(
@@ -98,6 +119,17 @@ public class UserController {
         return ResponseEntity.ok(this.userService.fetchAllUsers(spec, pageable));
     }
 
+    @GetMapping("/users/deleted")
+    @ApiMessage("fetch all deleted users")
+    public ResponseEntity<ResultPaginationDTO> fetchAllDeletedUsers(
+            @Filter Specification<User> spec,
+            Pageable pageable) {
+
+        // fetch all
+        // return ResponseEntity.status(HttpStatus.OK).body(users);
+        return ResponseEntity.ok(this.userService.fetchDeletedUsers(spec, pageable));
+    }
+    
     @PutMapping("/users")
     @ApiMessage("update a user")
     public ResponseEntity<ResUpdateUserDTO> updateAUser(@RequestBody User user) throws IdInvalidException {

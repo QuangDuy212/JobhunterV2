@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.domain;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,6 +36,10 @@ public class Skill {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+    private boolean deleted = false;
+
+    private LocalDateTime deletedAt;
+
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "skills")
     @JsonIgnore

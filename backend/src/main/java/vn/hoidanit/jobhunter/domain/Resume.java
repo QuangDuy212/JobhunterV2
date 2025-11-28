@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.domain;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -39,7 +40,8 @@ public class Resume {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
-
+    private boolean deleted = false;
+    private LocalDateTime deletedAt;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

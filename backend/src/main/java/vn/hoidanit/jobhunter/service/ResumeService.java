@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.turkraft.springfilter.converter.FilterSpecification;
@@ -27,6 +29,7 @@ import vn.hoidanit.jobhunter.domain.response.resume.ResCreateResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResUpdateResumeDTO;
 import vn.hoidanit.jobhunter.repository.ResumeRepository;
+import vn.hoidanit.jobhunter.util.BaseSpecs;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.constant.ResumeStateEnum;
 
@@ -135,8 +138,8 @@ public class ResumeService {
     }
 
     public ResultPaginationDTO fetchAllResumes(Specification<Resume> spec, Pageable pageable) {
-
-        Page<Resume> pageResume = this.resumeRepository.findAll(spec, pageable);
+        Specification<Resume> resumesSpec = BaseSpecs.isActive();
+        Page<Resume> pageResume = this.resumeRepository.findAll(resumesSpec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
 
         List<ResResumeDTO> listResume = pageResume.getContent()
@@ -154,8 +157,53 @@ public class ResumeService {
         return rs;
     }
 
+    public ResultPaginationDTO fetchDeletedResumes(Specification<Resume> spec, Pageable pageable) {
+        Specification<Resume> delResumesSpec = BaseSpecs.isDeleted();
+        Page<Resume> pageDelResume = this.resumeRepository.findAll(delResumesSpec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+
+        List<ResResumeDTO> listDelResume = pageDelResume.getContent()
+                .stream().map(item -> this.convertResumeToResResumeDTO(item)).collect(Collectors.toList());
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageDelResume.getTotalPages());
+        mt.setTotal(pageDelResume.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(listDelResume);
+        return rs;
+    }
+
     public void handleDeleteResume(long id) {
         this.resumeRepository.deleteById(id);
+    }
+
+    public void softDeleteResume(long id) {
+        Resume resume = this.resumeRepository.findById(id).orElse(null);
+        resume.setDeleted(true);
+        resume.setDeletedAt(LocalDateTime.now());
+        this.resumeRepository.save(resume);
+    }
+
+    public void restoreResume(long id) {
+        Resume resume = this.resumeRepository.findById(id).orElse(null);
+        resume.setDeleted(false);
+        resume.setDeletedAt(null);
+        this.resumeRepository.save(resume);
+    }
+
+    @Scheduled(cron = "0 0 2 * * *")
+    public void autoHardDelete() {
+        LocalDateTime limit = LocalDateTime.now().minusDays(30);
+        List<Resume> expired = resumeRepository.findAllByDeletedTrueAndDeletedAtBefore(limit);
+
+        if (!expired.isEmpty()) {
+            resumeRepository.deleteAll(expired);
+            System.out.println("Auto hard delete users executed, removed: " + expired.size() + " records");
+        }
     }
 
     public ResultPaginationDTO fetchResumeByUser(Pageable pageable) {
@@ -201,12 +249,12 @@ public class ResumeService {
                 .atTime(23, 59, 59, 999999999)
                 .toInstant(ZoneOffset.UTC);
 
-        // 4. Gọi Repository để truy 
+        // 4. Gọi Repository để truy
         List<Resume> resumes = this.resumeRepository.findAllByCreatedAtBetween(startDate, endDate);
         return resumes.size() + 0L;
     }
 
-    public List<ResCountResumeByStausDTO>  countResumesByStatus() {
+    public List<ResCountResumeByStausDTO> countResumesByStatus() {
         List<ResumeStateEnum> statuses = List.of(ResumeStateEnum.values());
         List<ResCountResumeByStausDTO> result = statuses.stream().map(status -> {
             long count = this.resumeRepository.countByStatus(status);

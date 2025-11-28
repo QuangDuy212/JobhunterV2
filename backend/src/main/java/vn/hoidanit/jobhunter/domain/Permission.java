@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.domain;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,7 +45,10 @@ public class Permission {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+    // soft delete flag
+    private boolean deleted = false;
 
+    private LocalDateTime deletedAt;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "permissions")
     @JsonIgnore
     private List<Role> roles;

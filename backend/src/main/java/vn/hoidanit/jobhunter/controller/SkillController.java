@@ -59,7 +59,12 @@ public class SkillController {
             Pageable pageable) throws IdInvalidException {
         return ResponseEntity.ok().body(this.skillService.fetchAllSkills(spec, pageable));
     }
-
+    @GetMapping("/skills/deleted")
+    @ApiMessage("Fetch all deleted skills")
+    public ResponseEntity<ResultPaginationDTO> fetchDeletedSkills(@Filter Specification<Skill> spec,
+            Pageable pageable) throws IdInvalidException {
+        return ResponseEntity.ok().body(this.skillService.fetchDeletedSkills(spec, pageable));
+    }
     @GetMapping("/skills/{id}")
     @ApiMessage("Fetch all skills")
     public ResponseEntity<Skill> fetchSkillById(@PathVariable("id") long id) throws IdInvalidException {
@@ -86,7 +91,7 @@ public class SkillController {
         return ResponseEntity.ok().body(skill);
     }
 
-    @DeleteMapping("/skills/{id}")
+    @DeleteMapping("/skills/hard/{id}")
     @ApiMessage("delete skill by id")
     public ResponseEntity<Void> deleteSkill(@PathVariable("id") long id) throws IdInvalidException {
         boolean checkIdExist = this.skillService.isExistId(id);
@@ -97,7 +102,28 @@ public class SkillController {
         // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
         return ResponseEntity.ok(null);
     }
-
+    @DeleteMapping("/skills/{id}")
+    @ApiMessage("delete skill by id")
+    public ResponseEntity<Void> softDeleteSkill(@PathVariable("id") long id) throws IdInvalidException {
+        boolean checkIdExist = this.skillService.isExistId(id);
+        if (!checkIdExist) {
+            throw new IdInvalidException("Skill với id = " + id + " không tồn tại");
+        }
+        this.skillService.softDeleteSkill(id);
+        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
+        return ResponseEntity.ok(null);
+    }
+    @PutMapping("/skills/restore/{id}")
+    @ApiMessage("restore skill by id")
+    public ResponseEntity<?> restoreSkill(@PathVariable("id") long id) throws IdInvalidException {
+        Optional<Skill> currentSkill = this.skillService.fetchSkillById(id);
+        if (currentSkill == null) {
+            throw new IdInvalidException("Skill với id = " + id + " không tồn tại");
+        }
+        //TODO: process PUT request
+        this.skillService.restoreSkill(id);
+        return ResponseEntity.ok(null);
+    }
     @GetMapping("/skills/count-all-skills")
     @ApiMessage("Fetch count all skills")
     public ResponseEntity<Long> countAllSkills() {

@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.domain;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,6 +45,9 @@ public class Job {
     private double salary;
     private int quantity;
     private boolean active;
+    private boolean deleted = false;
+
+    private LocalDateTime deletedAt;
 
     @Enumerated(EnumType.STRING)
     private JobStatusEnum status; // ĐỔI SANG JOBSTATUSENUM
@@ -81,7 +85,7 @@ public class Job {
                 ? SecurityUtil.getCurrentUserLogin().get()
                 : "";
         this.createdAt = Instant.now();
-        
+
         // Thiết lập trạng thái mặc định là REVIEWING khi tạo mới
         if (this.status == null) {
             this.status = JobStatusEnum.REVIEWING;

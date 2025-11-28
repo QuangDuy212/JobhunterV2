@@ -1,5 +1,6 @@
 package vn.hoidanit.jobhunter.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -8,11 +9,15 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import vn.hoidanit.jobhunter.domain.Permission;
+import vn.hoidanit.jobhunter.domain.Skill;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.PermissionRepository;
+import vn.hoidanit.jobhunter.util.BaseSpecs;
 
 @Service
 public class PermissionService {
@@ -68,7 +73,8 @@ public class PermissionService {
     }
 
     public ResultPaginationDTO fetchAllPermissions(Specification<Permission> spec, Pageable pageable) {
-        Page<Permission> pagePermission = this.permissionRepository.findAll(spec, pageable);
+        Specification<Permission> permissionsSpec = BaseSpecs.isActive();
+        Page<Permission> pagePermission = this.permissionRepository.findAll(permissionsSpec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
 
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
@@ -83,6 +89,23 @@ public class PermissionService {
         rs.setResult(pagePermission.getContent());
         return rs;
     }
+    public ResultPaginationDTO fetchDeletedPermissions(Specification<Permission> spec, Pageable pageable) {
+        Specification<Permission> delPermissionsSpec = BaseSpecs.isDeleted();
+        Page<Permission> pageDelPermission = this.permissionRepository.findAll(delPermissionsSpec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageDelPermission.getTotalPages());
+        mt.setTotal(pageDelPermission.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageDelPermission.getContent());
+        return rs;
+    }
 
     public void handleDeletePermission(long id) {
         // delete permission_role
@@ -94,4 +117,38 @@ public class PermissionService {
         this.permissionRepository.delete(currentPermission);
     }
 
+    public void softDeletePermission(long id) {
+        Permission permission = permissionRepository.findById(id).orElse(null);
+
+        // soft delete
+        permission.setDeleted(true);
+        permission.setDeletedAt(LocalDateTime.now());
+
+        permissionRepository.save(permission);
+    }
+
+    public void restorePermission(long id){
+        Permission permission = this.permissionRepository.findById(id).orElse(null);
+        permission.setDeleted(false);
+        permission.setDeletedAt(null);
+        this.permissionRepository.save(permission);
+    }
+    @Scheduled(cron = "0 0 2 * * *")
+    @Transactional
+    public void autoHardDeletePermission() {
+
+        LocalDateTime limit = LocalDateTime.now().minusDays(30);
+
+        List<Permission> expiredPermissions = this.permissionRepository.findAllByDeletedTrueAndDeletedAtBefore(limit);
+
+        for (Permission permission : expiredPermissions) {
+
+            // XÓA QUAN HỆ TRONG permission_role
+            permission.getRoles().forEach(job -> job.getPermissions().remove(permission));
+            permission.getRoles().clear();
+            //xóa hẳn permission
+            this.permissionRepository.delete(permission);
+        }
+        System.out.println("Auto hard delete permissions executed, removed: " + expiredPermissions.size() + " records");
+    }
 }

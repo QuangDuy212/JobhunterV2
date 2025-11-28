@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.domain;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -37,6 +38,10 @@ public class User {
     private String email;
     private String password;
     private int age;
+    // soft delete flag
+    private boolean deleted = false;
+
+    private LocalDateTime deletedAt;
 
     @Enumerated(EnumType.STRING)
     private GenderEnum gender;

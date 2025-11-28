@@ -162,7 +162,60 @@ public class ResumeController {
         return ResponseEntity.ok(this.resumeService.fetchAllResumes(finalSpec, pageable));
     }
 
-    @DeleteMapping("/resumes/{id}")
+    @GetMapping("/resumes/deleted")
+    @ApiMessage("fetch deleted resumes")
+    public ResponseEntity<ResultPaginationDTO> fetchDeletedResumes(
+            @Filter Specification<Resume> spec, // PHẢI là Specification<Resume>
+            Pageable pageable) {
+
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = this.userService.handleGetUserByUsername(email);
+
+        // Mặc định, finalSpec là spec (điều kiện lọc từ người dùng)
+        Specification<Resume> finalSpec = spec;
+
+        // 1. Chỉ áp dụng logic phân quyền nếu không phải SUPER_ADMIN
+        if (currentUser != null && !currentUser.getRole().getName().equals("SUPER_ADMIN")) {
+
+            List<Long> arrJobIds = null;
+            Company userCompany = currentUser.getCompany();
+
+            if (userCompany != null) {
+                // Lấy Job IDs của công ty người dùng (HR)
+                List<Job> companyJobs = userCompany.getJobs();
+                if (companyJobs != null && companyJobs.size() > 0) {
+                    arrJobIds = companyJobs.stream()
+                            .map(Job::getId)
+                            .collect(Collectors.toList());
+                }
+            }
+
+            // 2. Tạo Specification giới hạn Job ID
+            if (arrJobIds != null && !arrJobIds.isEmpty()) {
+                // Tạo điều kiện: Resume.job.id IN (arrJobIds)
+                // Đảm bảo kiểu trả về là Specification<Resume>
+                Specification<Resume> jobInSpec = filterSpecificationConverter.convert(filterBuilder.field("job")
+                        .in(filterBuilder.input(arrJobIds)).get());
+
+                // 3. Kết hợp điều kiện phân quyền (jobInSpec) với điều kiện lọc người dùng
+                // (spec)
+                // Lỗi đã được sửa bằng cách đảm bảo jobInSpec và spec cùng kiểu <Resume>
+                finalSpec = jobInSpec.and(spec);
+            } else {
+                // Trường hợp không có Job ID nào để xem (HR không có công ty/job)
+                // Lọc theo ID = -1L để trả về kết quả rỗng (No resumes)
+                // Điều này hiệu quả hơn việc trả về null hoặc throw exception
+                Specification<Resume> noResultSpec = filterSpecificationConverter.convert(filterBuilder.field("id")
+                        .equal(filterBuilder.input(-1L)).get());
+
+                finalSpec = noResultSpec.and(spec);
+            }
+        }
+        // Nếu là SUPER_ADMIN, finalSpec vẫn là spec (cho phép xem tất cả resumes)
+
+        return ResponseEntity.ok(this.resumeService.fetchDeletedResumes(finalSpec, pageable));
+    }
+    @DeleteMapping("/resumes/hard/{id}")
     @ApiMessage("delete resume by id")
     public ResponseEntity<Void> deleteResume(@PathVariable("id") long id) throws IdInvalidException {
         Resume resume = this.resumeService.fetchResumeById(id);
@@ -173,7 +226,17 @@ public class ResumeController {
         // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
         return ResponseEntity.ok(null);
     }
-
+    @DeleteMapping("/resumes/{id}")
+    @ApiMessage("delete resume by id")
+    public ResponseEntity<Void> softDeleteResume(@PathVariable("id") long id) throws IdInvalidException {
+        Resume resume = this.resumeService.fetchResumeById(id);
+        if (resume == null) {
+            throw new IdInvalidException("Resume not found");
+        }
+        this.resumeService.softDeleteResume(id);
+        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
+        return ResponseEntity.ok(null);
+    }
     @PostMapping("/resumes/by-user")
     @ApiMessage("Get list resumes by user")
     public ResponseEntity<ResultPaginationDTO> fetchResumeByUser(Pageable pageable)

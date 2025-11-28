@@ -3,6 +3,7 @@ package vn.hoidanit.jobhunter.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +16,11 @@ import vn.hoidanit.jobhunter.domain.response.ResUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.CompanyRepository;
 import vn.hoidanit.jobhunter.repository.UserRepository;
+import vn.hoidanit.jobhunter.util.BaseSpecs;
+
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 @Service
@@ -49,8 +53,33 @@ public class UserService {
         return this.userRepository.save(user);
     }
 
-    public void handleDeleteUser(long id) {
+    public void softDeleteUser(long id) {
+        User user = userRepository.findById(id).orElse(null);
+        user.setDeleted(true);
+        user.setDeletedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    public void hardDeleteUser(long id) {
         this.userRepository.deleteById(id);
+    }
+
+    public void restore(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        user.setDeleted(false);
+        user.setDeletedAt(null);
+        userRepository.save(user);
+    }
+
+    @Scheduled(cron = "0 0 2 * * *")
+    public void autoHardDelete() {
+        LocalDateTime limit = LocalDateTime.now().minusDays(30);
+        List<User> expired = userRepository.findAllByDeletedTrueAndDeletedAtBefore(limit);
+
+        if (!expired.isEmpty()) {
+            userRepository.deleteAll(expired);
+            System.out.println("Auto hard delete users executed, removed: " + expired.size() + " records");
+        }
     }
 
     public boolean isEmailExist(String email) {
@@ -62,7 +91,8 @@ public class UserService {
     }
 
     public ResultPaginationDTO fetchAllUsers(Specification<User> spec, Pageable pageable) {
-        Page<User> pageUser = this.userRepository.findAll(spec, pageable);
+        Specification<User> UsersSpec = BaseSpecs.isActive();
+        Page<User> pageUser = this.userRepository.findAll(UsersSpec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
 
         List<ResUserDTO> listUser = new ArrayList<ResUserDTO>();
@@ -82,6 +112,27 @@ public class UserService {
         return rs;
     }
 
+    public ResultPaginationDTO fetchDeletedUsers(Specification<User> spec, Pageable pageable) {
+        Specification<User> deletedUsersSpec = BaseSpecs.isDeleted();
+        Page<User> pageDeletedUser = this.userRepository.findAll(deletedUsersSpec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        List<ResUserDTO> listDeleteduser = new ArrayList<ResUserDTO>();
+        for (User item : pageDeletedUser.getContent()) {
+            listDeleteduser.add(this.convertUserToResUserDTO(item));
+        }
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageDeletedUser.getTotalPages());
+        mt.setTotal(pageDeletedUser.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(listDeleteduser);
+        return rs;
+    }
+    
     public User fetchUserById(long id) {
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent())

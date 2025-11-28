@@ -1,5 +1,6 @@
 package vn.hoidanit.jobhunter.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -7,12 +8,15 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.Permission;
 import vn.hoidanit.jobhunter.domain.Role;
+import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.RoleRepository;
+import vn.hoidanit.jobhunter.util.BaseSpecs;
 
 @Service
 public class RoleService {
@@ -75,7 +79,8 @@ public class RoleService {
     }
 
     public ResultPaginationDTO fetchAllRoles(Specification<Role> spec, Pageable pageable) {
-        Page<Role> pageRoles = this.roleRepository.findAll(spec, pageable);
+        Specification<Role> rolesSpec = BaseSpecs.isActive();
+        Page<Role> pageRoles = this.roleRepository.findAll(rolesSpec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
 
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
@@ -90,8 +95,49 @@ public class RoleService {
         rs.setResult(pageRoles.getContent());
         return rs;
     }
+    public ResultPaginationDTO fetchDeletedRoles(Specification<Role> spec, Pageable pageable) {
+        Specification<Role> deletedRolesSpec = BaseSpecs.isDeleted();
+        Page<Role> pageDelRoles = this.roleRepository.findAll(deletedRolesSpec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
 
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageDelRoles.getTotalPages());
+        mt.setTotal(pageDelRoles.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pageDelRoles.getContent());
+        return rs;
+    }
+    public List<Role> fetchDeletedRoles(){
+        return this.roleRepository.findAllByDeletedTrue();
+    }
     public void handleDeleteARole(long id) {
         this.roleRepository.deleteById(id);
+    }
+    public void softDeleteRole(long id){
+        Role role = this.roleRepository.findById(id).orElse(null);
+        role.setDeleted(true);
+        role.setDeletedAt(LocalDateTime.now());
+        this.roleRepository.save(role);
+    }
+    public void restoreRole(long id){
+        Role role = this.roleRepository.findById(id).orElse(null);
+        role.setDeleted(false);
+        role.setDeletedAt(null);
+        this.roleRepository.save(role);
+    }
+    @Scheduled(cron = "0 0 2 * * *") 
+    public void autoHardDelete() {
+        LocalDateTime limit = LocalDateTime.now().minusDays(30);
+        List<Role> expired = roleRepository.findAllByDeletedTrueAndDeletedAtBefore(limit);
+
+        if (!expired.isEmpty()) {
+            roleRepository.deleteAll(expired);
+            System.out.println("Auto hard delete roles executed, removed: " + expired.size() + " records");
+        }
     }
 }

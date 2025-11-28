@@ -1,15 +1,18 @@
 package vn.hoidanit.jobhunter.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.springframework.boot.autoconfigure.rsocket.RSocketProperties.Server.Spec;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Async; // Import cho @Async
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.Company;
@@ -21,6 +24,7 @@ import vn.hoidanit.jobhunter.domain.response.job.ResCreateJobDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResUpdateJob;
 import vn.hoidanit.jobhunter.repository.JobRepository;
 import vn.hoidanit.jobhunter.repository.SkillRespository;
+import vn.hoidanit.jobhunter.util.BaseSpecs;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.constant.JobStatusEnum; // Import JobStatusEnum
 
@@ -34,7 +38,8 @@ public class JobService {
     private final GeminiService geminiService; // Thêm GeminiService
 
     public JobService(JobRepository jobRepository, SkillRespository skillRespository, SkillService skillService,
-            CompanyService companyService,UserService userService, GeminiService geminiService) { // Cập nhật Constructor
+            CompanyService companyService, UserService userService, GeminiService geminiService) { // Cập nhật
+                                                                                                   // Constructor
         this.jobRepository = jobRepository;
         this.skillRespository = skillRespository;
         this.skillService = skillService;
@@ -46,13 +51,14 @@ public class JobService {
     /**
      * Hàm này được gọi ngay sau khi Job được tạo.
      * Nó chạy bất đồng bộ (@Async) để không làm người dùng chờ đợi.
+     * 
      * @param job Job Entity đã được lưu vào DB (với Status = REVIEWING)
      */
-    @Async 
+    @Async
     public void checkAndApproveJob(Job job) {
         // Lấy mô tả công việc
         String jobDescription = job.getDescription();
-        
+
         System.out.println("Bắt đầu kiểm duyệt Job ID: " + job.getId());
 
         // 1. GỌI AI ĐỂ KIỂM TRA MỨC ĐỘ AN TOÀN (blocking call trong luồng @Async)
@@ -67,11 +73,10 @@ public class JobService {
             job.setActive(false);
             System.out.println("Job ID " + job.getId() + " đã bị AI REJECT do nội dung phản cảm.");
         }
-        
+
         // Lưu lại trạng thái mới
         this.jobRepository.save(job);
     }
-
 
     public ResCreateJobDTO handleCreateJob(Job j) {
         // check skills
@@ -89,7 +94,8 @@ public class JobService {
             }
         }
 
-        // 1. Create job (Status mặc định là REVIEWING - đã được thiết lập trong Job Entity @PrePersist)
+        // 1. Create job (Status mặc định là REVIEWING - đã được thiết lập trong Job
+        // Entity @PrePersist)
         Job currentJob = this.jobRepository.save(j);
 
         // 2. Kích hoạt kiểm duyệt AI BẤT ĐỒNG BỘ
@@ -194,6 +200,31 @@ public class JobService {
         this.jobRepository.deleteById(id);
     }
 
+    public void softDeleteJob(long id) {
+        Job job = this.jobRepository.findById(id).orElse(null);
+        job.setDeleted(true);
+        job.setDeletedAt(LocalDateTime.now());
+        this.jobRepository.save(job);
+    }
+
+    public void restoreJob(long id) {
+        Job job = this.jobRepository.findById(id).orElse(null);
+        job.setDeleted(false);
+        job.setDeletedAt(LocalDateTime.now());
+        this.jobRepository.save(job);
+    }
+
+    @Scheduled(cron = "0 0 2 * * *")
+    public void autoHardDeleteJob() {
+        LocalDateTime limit = LocalDateTime.now().minusDays(30);
+        List<Job> expired = jobRepository.findAllByDeletedTrueAndDeletedAtBefore(limit);
+
+        if (!expired.isEmpty()) {
+            jobRepository.deleteAll(expired);
+            System.out.println("Auto hard delete jobs executed, removed: " + expired.size() + " records");
+        }
+    }
+
     public Job fetchJobById(long id) {
         Optional<Job> job = this.jobRepository.findById(id);
         if (job.isPresent())
@@ -202,19 +233,19 @@ public class JobService {
     }
 
     public ResultPaginationDTO fetchAllJobs(Specification<Job> spec, Pageable pageable) {
-
+        Specification<Job> jobsSpec = BaseSpecs.isActive();
         ResultPaginationDTO rs = new ResultPaginationDTO();
-        
+
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get()
-        : "";
-        
+                : "";
+
         User currentUserDB = this.userService.handleGetUserByUsername(email);
-        if(currentUserDB.getCompany() != null){
-            Specification<Job> companySpec = (root, query, criteriaBuilder) -> 
-            criteriaBuilder.equal(root.get("company").get("id"), currentUserDB.getCompany().getId());
+        if (currentUserDB.getCompany() != null) {
+            Specification<Job> companySpec = (root, query, criteriaBuilder) -> criteriaBuilder
+                    .equal(root.get("company").get("id"), currentUserDB.getCompany().getId());
             spec = spec == null ? companySpec : spec.and(companySpec);
         }
-        Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
+        Page<Job> pageJob = this.jobRepository.findAll(jobsSpec, pageable);
 
         List<Job> listJob = pageJob.getContent();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
@@ -230,13 +261,42 @@ public class JobService {
         return rs;
     }
 
+    public ResultPaginationDTO fetchDeletedJobs(Specification<Job> spec, Pageable pageable) {
+        Specification<Job> delJobsSpec = BaseSpecs.isDeleted();
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+
+        User currentUserDB = this.userService.handleGetUserByUsername(email);
+        if (currentUserDB.getCompany() != null) {
+            Specification<Job> companySpec = (root, query, criteriaBuilder) -> criteriaBuilder
+                    .equal(root.get("company").get("id"), currentUserDB.getCompany().getId());
+            spec = spec == null ? companySpec : spec.and(companySpec);
+        }
+        Page<Job> pageDelJob = this.jobRepository.findAll(delJobsSpec, pageable);
+
+        List<Job> listDelJob = pageDelJob.getContent();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageDelJob.getTotalPages());
+        mt.setTotal(pageDelJob.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(listDelJob);
+        return rs;
+    }
+
     public Long countJob() {
         return this.jobRepository.count();
     }
 
-    public List<Job> fetchJobBySkill(long skillId){
+    public List<Job> fetchJobBySkill(long skillId) {
         Optional<Skill> skillOptional = this.skillRespository.findById(skillId);
-        if(skillOptional.isPresent()){
+        if (skillOptional.isPresent()) {
             return this.jobRepository.findBySkills(skillOptional.get());
         }
         return new ArrayList<>();

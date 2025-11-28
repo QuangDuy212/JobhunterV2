@@ -1,5 +1,7 @@
 package vn.hoidanit.jobhunter.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -71,6 +73,16 @@ public class RoleController {
         // return ResponseEntity.status(HttpStatus.OK).body(users);
         return ResponseEntity.ok(this.roleService.fetchAllRoles(spec, pageable));
     }
+    @GetMapping("/roles/deleted")
+    @ApiMessage("fetch deleted roles")
+    public ResponseEntity<ResultPaginationDTO> fetchDeletedRoles(
+            @Filter Specification<Role> spec,
+            Pageable pageable) {
+
+        // fetch all
+        // return ResponseEntity.status(HttpStatus.OK).body(users);
+        return ResponseEntity.ok(this.roleService.fetchDeletedRoles(spec, pageable));
+    }
 
     @GetMapping("/roles/{id}")
     @ApiMessage("fetch role by id")
@@ -82,8 +94,7 @@ public class RoleController {
         // return ResponseEntity.status(HttpStatus.OK).body(user);
         return ResponseEntity.ok(role);
     }
-
-    @DeleteMapping("/roles/{id}")
+    @DeleteMapping("/roles/hard/{id}")
     @ApiMessage("delete role by id")
     public ResponseEntity<Void> deleteRole(@PathVariable("id") long id) throws IdInvalidException {
         Role role = this.roleService.fetchRoleById(id);
@@ -95,4 +106,25 @@ public class RoleController {
         return ResponseEntity.ok(null);
     }
 
+    @DeleteMapping("/roles/{id}")
+    @ApiMessage("soft delete role by id")
+    public ResponseEntity<Void> softDeleteRole(@PathVariable("id") long id) throws IdInvalidException {
+        Role role = this.roleService.fetchRoleById(id);
+        if (role == null) {
+            throw new IdInvalidException("Role not found");
+        }
+        this.roleService.softDeleteRole(id);
+        return ResponseEntity.ok(null);
+    }
+
+    @PutMapping("/roles/restore/{id}")
+    @ApiMessage("restore deleted role by id")
+    public ResponseEntity<Void> restoreRole(@PathVariable("id") long id) throws IdInvalidException {
+        Role role = this.roleService.fetchRoleById(id);
+        if (role == null) {
+            throw new IdInvalidException("Role not found");
+        }
+        this.roleService.restoreRole(id);
+        return ResponseEntity.ok(null);
+    }
 }

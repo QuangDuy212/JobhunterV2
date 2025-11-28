@@ -1,6 +1,7 @@
 package vn.hoidanit.jobhunter.repository;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,8 @@ public interface ResumeRepository extends JpaRepository<Resume, Long>, JpaSpecif
     boolean existsByUserAndJob(User user, Job job);
     List<Resume> findAllByCreatedAtBetween(Instant startDate, Instant endDate);
     long countByStatus(ResumeStateEnum status);
+    List<Resume> findAllByDeletedTrue();
+
+    List<Resume> findAllByDeletedTrueAndDeletedAtBefore(LocalDateTime limit);
+
 }

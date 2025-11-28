@@ -1,5 +1,6 @@
 package vn.hoidanit.jobhunter.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,9 @@ public interface SkillRespository extends JpaRepository<Skill, Long>, JpaSpecifi
     boolean existsById(long id);
 
     List<Skill> findByIdIn(List<Long> id);
+    
+    List<Skill> findAllByDeletedTrue();
+
+    List<Skill> findAllByDeletedTrueAndDeletedAtBefore(LocalDateTime deletedAt);
 }
+

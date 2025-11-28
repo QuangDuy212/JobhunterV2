@@ -1,5 +1,6 @@
 package vn.hoidanit.jobhunter.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -7,13 +8,18 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.cfg.BaseSettings;
+
+import jakarta.transaction.Transactional;
 import vn.hoidanit.jobhunter.domain.Skill;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.SkillRespository;
+import vn.hoidanit.jobhunter.util.BaseSpecs;
 
 @Service
 public class SkillService {
@@ -42,8 +48,8 @@ public class SkillService {
     }
 
     public ResultPaginationDTO fetchAllSkills(Specification<Skill> spec, Pageable pageable) {
-
-        Page<Skill> pageSkill = this.skillRespository.findAll(spec, pageable);
+        Specification<Skill> skillsSpec = BaseSpecs.isActive();
+        Page<Skill> pageSkill = this.skillRespository.findAll(skillsSpec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
 
         List<Skill> listSkill = pageSkill.getContent();
@@ -77,8 +83,71 @@ public class SkillService {
         this.skillRespository.deleteById(id);
     }
 
+    public void softDeleteSkill(long id) {
+        Skill skill = skillRespository.findById(id).orElse(null);
+
+        // soft delete
+        skill.setDeleted(true);
+        skill.setDeletedAt(LocalDateTime.now());
+
+        skillRespository.save(skill);
+    }
+
+    public void restoreSkill(long id) {
+        Skill skill = skillRespository.findById(id).orElse(null);
+        skill.setDeleted(false);
+        skill.setDeletedAt(null);
+        skillRespository.save(skill);
+    }
+
+    @Scheduled(cron = "0 0 2 * * *")
+    @Transactional
+    public void autoHardDeleteSkill() {
+
+        LocalDateTime limit = LocalDateTime.now().minusDays(30);
+
+        List<Skill> expiredSkills = this.skillRespository.findAllByDeletedTrueAndDeletedAtBefore(limit);
+
+        for (Skill skill : expiredSkills) {
+
+            // XÓA QUAN HỆ TRONG job_skill
+            skill.getJobs().forEach(job -> job.getSkills().remove(skill));
+            skill.getJobs().clear();
+
+            // XÓA QUAN HỆ TRONG subscriber_skill
+            skill.getSubscribers().forEach(sub -> sub.getSkills().remove(skill));
+            skill.getSubscribers().clear();
+
+            // Lưu lại để xóa foreign key
+            skillRespository.save(skill);
+
+            // xóa hẳn skill
+            this.skillRespository.delete(skill);
+        }
+        System.out.println("Auto hard delete skills executed, removed: " + expiredSkills.size() + " records");
+    }
+
     public List<Skill> fetchListSkillByListId(List<Long> listIds) {
         return this.skillRespository.findByIdIn(listIds);
+    }
+
+    public ResultPaginationDTO fetchDeletedSkills(Specification<Skill> spec, Pageable pageable) {
+        Specification<Skill> deletedSkillsSpec = BaseSpecs.isDeleted();
+        Page<Skill> pageDeletedSkill = this.skillRespository.findAll(deletedSkillsSpec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+
+        List<Skill> listDeletedSkill = pageDeletedSkill.getContent();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageDeletedSkill.getTotalPages());
+        mt.setTotal(pageDeletedSkill.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(listDeletedSkill);
+        return rs;
     }
 
     public Long countAllSkills() {

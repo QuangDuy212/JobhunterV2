@@ -54,6 +54,15 @@ public class CompanyController {
         // fetch all companies
         return ResponseEntity.ok(this.companyService.fetchAllCompanies(spec, pageable));
     }
+    @GetMapping("/companies/deleted")
+    @ApiMessage("fetch deleted company")
+    public ResponseEntity<ResultPaginationDTO> fetchDeletedCompanies(
+            @Filter Specification<Company> spec,
+            Pageable pageable) {
+
+        // fetch all companies
+        return ResponseEntity.ok(this.companyService.fetchDeletedCompanies(spec, pageable));
+    }
 
     @GetMapping("/companies/{id}")
     @ApiMessage("fetch company by id")
@@ -71,8 +80,8 @@ public class CompanyController {
         return ResponseEntity.ok(company);
     }
 
-    @DeleteMapping("/companies/{id}")
-    @ApiMessage("delete company by id")
+    @DeleteMapping("/companies/hard/{id}")
+    @ApiMessage("hard delete company by id")
     public ResponseEntity<Void> deleteCompany(@PathVariable("id") long id) throws IdInvalidException {
         Optional<Company> company = this.companyService.fetchCompanyById(id);
         if (!company.isPresent()) {
@@ -82,7 +91,28 @@ public class CompanyController {
         // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
         return ResponseEntity.ok(null);
     }
-
+    @DeleteMapping("/companies/{id}")
+    @ApiMessage("delete company by id")
+    public ResponseEntity<Void> softDeleteCompany(@PathVariable("id") long id) throws IdInvalidException {
+        Optional<Company> company = this.companyService.fetchCompanyById(id);
+        if (!company.isPresent()) {
+            throw new IdInvalidException("Không tồn tại công ty với ID được truyền vào");
+        }
+        this.companyService.softDeleteCompany(id);
+        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
+        return ResponseEntity.ok(null);
+    }
+    @PutMapping("/companies/restore/{id}")
+    @ApiMessage("restore company by id")
+    public ResponseEntity<?> restoreCompany(@PathVariable("id") long id) throws IdInvalidException {
+        Optional<Company> company = this.companyService.fetchCompanyById(id);
+        if (company == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+        }
+        //TODO: process PUT request
+        this.companyService.restoreCompany(id);
+        return ResponseEntity.ok(null);
+    }
     @GetMapping("/companies/count-all-companies")
     @ApiMessage("Fetch count all companies")
     public ResponseEntity<Long> countAllCompanies() {
