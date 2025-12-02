@@ -51,6 +51,10 @@ public class ResumeService {
         this.jobService = jobService;
     }
 
+    public boolean isExistId(long id) {
+        return this.resumeRepository.existsById(id);
+    }
+
     public boolean checkResumeExistByUserAndJob(Resume resume) {
         // check user by id
         if (resume.getUser() == null)

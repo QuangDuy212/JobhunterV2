@@ -14,6 +14,7 @@ import ModalPermission from "@/components/admin/permission/modal.permission";
 import { colorMethod } from "@/config/utils";
 import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
+import { fetchPermissionDeleted } from "@/redux/slice/permissionDeletedSlide";
 
 const PermissionPage = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -33,6 +34,7 @@ const PermissionPage = () => {
             if (res && res.statusCode === 200) {
                 message.success('Delete permission successfully');
                 reloadTable();
+                dispatch(fetchPermissionDeleted({ query: "?page=1&size=10&sort=updatedAt,desc" })); // Refresh deleted users tab
             } else {
                 notification.error({
                     message: 'Error occur',

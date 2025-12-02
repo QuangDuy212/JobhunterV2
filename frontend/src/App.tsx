@@ -18,7 +18,7 @@ import HomePage from 'pages/home';
 import styles from 'styles/app.module.scss';
 import DashboardPage from './pages/admin/dashboard';
 import CompanyPage from './pages/admin/company/company';
-import PermissionPage from './pages/admin/permission';
+import PermissionPage from './pages/admin/permission/permission';
 import ResumePage from './pages/admin/resume';
 import RolePage from './pages/admin/role';
 import UserPage from './pages/admin/user/user';
@@ -32,6 +32,7 @@ import ClientCompanyDetailPage from './pages/company/detail';
 import JobTabs from './pages/admin/job/job.tabs';
 import UserTabs from './pages/admin/user/user.tabs';
 import CompanyTabs from './pages/admin/company/company.tabs';
+import PermissionTabs from './pages/admin/permission/permission.tabs';
 
 const LayoutClient = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -138,10 +139,12 @@ export default function App() {
         },
         {
           path: "permission",
-          element:
-            <ProtectedRoute>
-              <PermissionPage />
-            </ProtectedRoute>
+          children: [
+            {
+              index: true,
+              element: <ProtectedRoute><PermissionTabs /></ProtectedRoute>
+            },
+          ]
         },
         {
           path: "role",

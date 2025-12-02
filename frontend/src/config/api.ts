@@ -250,8 +250,16 @@ export const callDeletePermission = (id: string) => {
     return axios.delete<IBackendRes<IPermission>>(`/api/v1/permissions/${id}`);
 }
 
+export const callRestorePermission = (id: string) => {
+    return axios.put<IBackendRes<{ id: string }>>(`/api/v1/permissions/restore/${id}`);
+}
+
 export const callFetchPermission = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<IPermission>>>(`/api/v1/permissions?${query}`);
+}
+
+export const callFetchPermissionDeleted = (query: string) => {
+    return axios.get<IBackendRes<IModelPaginate<IPermission>>>(`/api/v1/permissions/deleted?${query}`);
 }
 
 export const callFetchPermissionById = (id: string) => {

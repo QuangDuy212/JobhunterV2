@@ -247,6 +247,22 @@ public class ResumeController {
         });
     }
 
+    @PutMapping("/resumes/restore/{id}")
+    @ApiMessage("restore resume by id")
+    public ResponseEntity<ResIdDTO> restore(@PathVariable("id") long id) throws IdInvalidException {
+        boolean checkExist = this.resumeService.isExistId(id);
+        if (!checkExist) {
+            throw new IdInvalidException("Job not found");
+        }
+        // TODO: process PUT request
+        this.resumeService.restoreResume(id);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
+    }
+
     @PostMapping("/resumes/by-user")
     @ApiMessage("Get list resumes by user")
     public ResponseEntity<ResultPaginationDTO> fetchResumeByUser(Pageable pageable)
