@@ -14,6 +14,7 @@ import skillReducer from './slice/skillSlide';
 import userDeletedReducer from './slice/userDeletedSlide';
 import companyDeletedReducer from './slice/companyDeletedSlide';
 import permissionDeletedReducer from './slice/permissionDeletedSlide';
+import jobDeletedReducer from './slice/jobDeletedSlide';
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     userDeleted: userDeletedReducer,
     companyDeleted: companyDeletedReducer,
     permissionDeleted: permissionDeletedReducer,
+    jobDeleted: jobDeletedReducer,
   },
 });
 

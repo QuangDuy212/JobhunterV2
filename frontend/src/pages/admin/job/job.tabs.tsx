@@ -4,6 +4,7 @@ import JobPage from './job';
 import SkillPage from './skill';
 import Access from '@/components/share/access';
 import { ALL_PERMISSIONS } from '@/config/permissions';
+import JobDeleted from './soft.delete';
 
 const JobTabs = () => {
     const onChange = (key: string) => {
@@ -20,6 +21,11 @@ const JobTabs = () => {
             key: '2',
             label: 'Manage Skills',
             children: <SkillPage />,
+        },
+        {
+            key: '3',
+            label: 'Deleted',
+            children: <JobDeleted />,
         },
 
     ];
