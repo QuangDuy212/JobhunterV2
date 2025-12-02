@@ -44,7 +44,11 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Delete a company", "/api/v1/companies/{id}", "DELETE", "COMPANIES"));
             arr.add(new Permission("Get a company by id", "/api/v1/companies/{id}", "GET", "COMPANIES"));
             arr.add(new Permission("Get companies with pagination", "/api/v1/companies", "GET", "COMPANIES"));
-            arr.add(new Permission("Get count all companies", "/api/v1/companies/count-all-companies", "GET", "COMPANIES"));
+            arr.add(new Permission("Get count all companies", "/api/v1/companies/count-all-companies", "GET",
+                    "COMPANIES"));
+            arr.add(new Permission("Hard delete a company", "/api/v1/companies/hard/{id}", "DELETE", "COMPANIES"));
+            arr.add(new Permission("Restore a company", "/api/v1/companies/restore/{id}", "PUT", "COMPANIES"));
+            arr.add(new Permission("Fetch all deleted companies", "/api/v1/companies/deleted", "GET", "COMPANIES"));
 
             arr.add(new Permission("Create a job", "/api/v1/jobs", "POST", "JOBS"));
             arr.add(new Permission("Update a job", "/api/v1/jobs", "PUT", "JOBS"));
@@ -54,12 +58,20 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Get jobs for admin", "/api/v1/admin-jobs", "GET", "JOBS"));
             arr.add(new Permission("Get count all jobs", "/api/v1/jobs/count-all-jobs", "GET", "JOBS"));
             arr.add(new Permission("Get jobs by skill id", "/api/v1/jobs/fetch-by-skill/{id}", "GET", "JOBS"));
+            arr.add(new Permission("Hard delete a job", "/api/v1/jobs/hard/{id}", "DELETE", "JOBS"));
+            arr.add(new Permission("Restore a job", "/api/v1/jobs/restore/{id}", "PUT", "JOBS"));
+            arr.add(new Permission("Fetch all deleted jobs", "/api/v1/jobs/deleted", "GET", "JOBS"));
 
             arr.add(new Permission("Create a permission", "/api/v1/permissions", "POST", "PERMISSIONS"));
             arr.add(new Permission("Update a permission", "/api/v1/permissions", "PUT", "PERMISSIONS"));
             arr.add(new Permission("Delete a permission", "/api/v1/permissions/{id}", "DELETE", "PERMISSIONS"));
             arr.add(new Permission("Get a permission by id", "/api/v1/permissions/{id}", "GET", "PERMISSIONS"));
             arr.add(new Permission("Get permissions with pagination", "/api/v1/permissions", "GET", "PERMISSIONS"));
+            arr.add(new Permission("Hard delete a permission", "/api/v1/permissions/hard/{id}", "DELETE",
+                    "PERMISSIONS"));
+            arr.add(new Permission("Restore a permission", "/api/v1/permissions/restore/{id}", "PUT", "PERMISSIONS"));
+            arr.add(new Permission("Fetch all deleted permissions", "/api/v1/permissions/deleted", "GET",
+                    "PERMISSIONS"));
 
             arr.add(new Permission("Create a resume", "/api/v1/resumes", "POST", "RESUMES"));
             arr.add(new Permission("Update a resume", "/api/v1/resumes", "PUT", "RESUMES"));
@@ -67,14 +79,22 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Get a resume by id", "/api/v1/resumes/{id}", "GET", "RESUMES"));
             arr.add(new Permission("Get resumes with pagination", "/api/v1/resumes", "GET", "RESUMES"));
             arr.add(new Permission("Get count all resumes", "/api/v1/resumes/count-all-resumes", "GET", "RESUMES"));
-            arr.add(new Permission("Get count resumes by time", "/api/v1/resumes/count-resumes-by-time", "GET", "RESUMES"));
-            arr.add(new Permission("Get count resumes by status", "/api/v1/resumes/count/count-by-status", "GET", "RESUMES"));
+            arr.add(new Permission("Get count resumes by time", "/api/v1/resumes/count-resumes-by-time", "GET",
+                    "RESUMES"));
+            arr.add(new Permission("Get count resumes by status", "/api/v1/resumes/count/count-by-status", "GET",
+                    "RESUMES"));
+            arr.add(new Permission("Hard delete a resume", "/api/v1/resumes/hard/{id}", "DELETE", "RESUMES"));
+            arr.add(new Permission("Fetch all deleted resumes", "/api/v1/resumes/deleted", "GET", "RESUMES"));
+            arr.add(new Permission("Restore a resume", "/api/v1/resumes/restore/{id}", "PUT", "RESUMES"));
 
             arr.add(new Permission("Create a role", "/api/v1/roles", "POST", "ROLES"));
             arr.add(new Permission("Update a role", "/api/v1/roles", "PUT", "ROLES"));
             arr.add(new Permission("Delete a role", "/api/v1/roles/{id}", "DELETE", "ROLES"));
             arr.add(new Permission("Get a role by id", "/api/v1/roles/{id}", "GET", "ROLES"));
             arr.add(new Permission("Get roles with pagination", "/api/v1/roles", "GET", "ROLES"));
+            arr.add(new Permission("Hard delete a role", "/api/v1/roles/hard/{id}", "DELETE", "ROLES"));
+            arr.add(new Permission("Restore a role", "/api/v1/roles/restore/{id}", "PUT", "ROLES"));
+            arr.add(new Permission("Fetch all deleted roles", "/api/v1/roles/deleted", "GET", "ROLES"));
 
             arr.add(new Permission("Create a user", "/api/v1/users", "POST", "USERS"));
             arr.add(new Permission("Change password", "/api/v1/auth/change-password", "POST", "USERS"));
@@ -83,6 +103,9 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Get a user by id", "/api/v1/users/{id}", "GET", "USERS"));
             arr.add(new Permission("Get users with pagination", "/api/v1/users", "GET", "USERS"));
             arr.add(new Permission("Get count all users", "/api/v1/users/count-all-users", "GET", "USERS"));
+            arr.add(new Permission("Hard delete a user", "/api/v1/users/hard/{id}", "DELETE", "USERS"));
+            arr.add(new Permission("Restore a user", "/api/v1/users/restore/{id}", "PUT", "USERS"));
+            arr.add(new Permission("Fetch all deleted users", "/api/v1/users/deleted", "GET", "USERS"));
 
             arr.add(new Permission("Create a subscriber", "/api/v1/subscribers", "POST", "SUBSCRIBERS"));
             arr.add(new Permission("Update a subscriber", "/api/v1/subscribers", "PUT", "SUBSCRIBERS"));
