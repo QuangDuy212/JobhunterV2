@@ -67,8 +67,16 @@ export const callDeleteCompany = (id: string) => {
     return axios.delete<IBackendRes<ICompany>>(`/api/v1/companies/${id}`);
 }
 
+export const callRestoreCompany = (id: string) => {
+    return axios.put<IBackendRes<ICompany>>(`/api/v1/companies/restore/${id}`);
+}
+
 export const callFetchCompany = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<ICompany>>>(`/api/v1/companies?${query}`);
+}
+
+export const callFetchCompanyDeleted = (query: string) => {
+    return axios.get<IBackendRes<IModelPaginate<ICompany>>>(`/api/v1/companies/deleted?${query}`);
 }
 
 export const callFetchCompanyById = (id: string) => {

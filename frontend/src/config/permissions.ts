@@ -4,6 +4,7 @@ export const ALL_PERMISSIONS = {
         CREATE: { method: "POST", apiPath: '/api/v1/companies', module: "COMPANIES" },
         UPDATE: { method: "PUT", apiPath: '/api/v1/companies', module: "COMPANIES" },
         DELETE: { method: "DELETE", apiPath: '/api/v1/companies/{id}', module: "COMPANIES" },
+        RESTORE: { method: "PUT", apiPath: '/api/v1/companies/restore/{id}', module: "COMPANIES" },
     },
     JOBS: {
         GET_PAGINATE: { method: "GET", apiPath: '/api/v1/admin-jobs', module: "JOBS" },

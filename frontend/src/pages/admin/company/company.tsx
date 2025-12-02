@@ -13,6 +13,7 @@ import queryString from 'query-string';
 import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
 import { sfLike } from "spring-filter-query-builder";
+import { fetchCompanyDeleted } from "@/redux/slice/companyDeletedSlide";
 
 const CompanyPage = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -31,6 +32,7 @@ const CompanyPage = () => {
             if (res && +res.statusCode === 200) {
                 message.success('Delete company successfully');
                 reloadTable();
+                dispatch(fetchCompanyDeleted({ query: "?page=1&size=10&sort=updatedAt,desc" })); // Refresh deleted users tab
             } else {
                 notification.error({
                     message: 'Error occur',
