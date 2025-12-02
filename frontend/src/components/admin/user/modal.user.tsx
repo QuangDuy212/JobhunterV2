@@ -60,7 +60,7 @@ const ModalUser = (props: IProps) => {
                 age,
                 gender,
                 address,
-                role: { id: role.value, name: "" },
+                role: { id: role.value, name: role.label },
                 company: {
                     id: company.value,
                     name: company.label
@@ -74,7 +74,7 @@ const ModalUser = (props: IProps) => {
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -95,12 +95,12 @@ const ModalUser = (props: IProps) => {
             }
             const res = await callCreateUser(user);
             if (res.data) {
-                message.success("Thêm mới user thành công");
+                message.success("New user thành công");
                 handleReset();
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -157,7 +157,7 @@ const ModalUser = (props: IProps) => {
                     keyboard: false,
                     maskClosable: false,
                     okText: <>{dataInit?.id ? "Cập nhật" : "Tạo mới"}</>,
-                    cancelText: "Hủy"
+                    cancelText: "Cancel"
                 }}
                 scrollToFirstError={true}
                 preserve={false}

@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import vn.hoidanit.jobhunter.domain.Permission;
 import vn.hoidanit.jobhunter.domain.Role;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.service.AuditLogService;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
@@ -21,6 +22,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     @Override
     @Transactional
@@ -49,9 +53,28 @@ public class PermissionInterceptor implements HandlerInterceptor {
                     boolean isAllow = permissions.stream()
                             .anyMatch(item -> item.getApiPath().equals(path) && item.getMethod().equals(httpMethod));
                     if (!isAllow) {
+                        // ⭐️ GHI LOG: HÀNH ĐỘNG TRUY CẬP BỊ TỪ CHỐI
+                        auditLogService.logAction(
+                            "ACCESS_DENIED", 
+                            email, 
+                            "Thử truy cập " + httpMethod + " " + path + " (URI: " + requestURI + ")"
+                        );
                         throw new PermissionException("Bạn không có quyền truy cập vào trang này");
                     }
+                    // ⭐️ GHI LOG: HÀNH ĐỘNG TRUY CẬP THÀNH CÔNG
+                    // Ghi log sau khi đã chắc chắn được phép
+                    auditLogService.logAction(
+                        httpMethod, 
+                        email, 
+                        "Truy cập " + httpMethod + " " + path + " (URI: " + requestURI + ")"
+                    );
                 } else {
+                     // Role null cũng là không có quyền
+                     auditLogService.logAction(
+                        "ACCESS_DENIED", 
+                        email, 
+                        "User không có Role khi truy cập " + httpMethod + " " + path
+                    );
                     throw new PermissionException("Bạn không có quyền truy cập vào trang này");
                 }
             }

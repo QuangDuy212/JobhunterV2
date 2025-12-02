@@ -9,6 +9,8 @@ import dayjs from 'dayjs';
 import { MonitorOutlined } from "@ant-design/icons";
 import { SKILLS_LIST } from "@/config/utils";
 import { useAppSelector } from "@/redux/hooks";
+import ChangePasswordForm from "./change.password";
+import ChangeInformation from "./change.information";
 
 interface IProps {
     open: boolean;
@@ -25,6 +27,7 @@ const UserResume = (props: any) => {
             const res = await callFetchResumeByUser();
             if (res && res.data) {
                 setListCV(res.data.result as IResume[])
+                console.log(res.data.result);
             }
             setIsFetching(false);
         }
@@ -33,7 +36,7 @@ const UserResume = (props: any) => {
 
     const columns: ColumnsType<IResume> = [
         {
-            title: 'STT',
+            title: 'No',
             key: 'index',
             width: 50,
             align: "center",
@@ -73,7 +76,7 @@ const UserResume = (props: any) => {
             render(value, record, index) {
                 return (
                     <a
-                        href={`${import.meta.env.VITE_BACKEND_URL}/storage/resume/${record?.url}`}
+                        href={`${import.meta.env.VITE_FILE_UPLOAD_URL}/resume/${record?.url}`}
                         target="_blank"
                     >Chi tiết</a>
                 )
@@ -167,7 +170,7 @@ const JobByEmail = (props: any) => {
                 setSubscriber(res.data);
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -184,7 +187,7 @@ const JobByEmail = (props: any) => {
                 setSubscriber(res.data);
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -252,12 +255,12 @@ const ManageAccount = (props: IProps) => {
         {
             key: 'user-update-info',
             label: `Cập nhật thông tin`,
-            children: <UserUpdateInfo />,
+            children: <ChangeInformation />,
         },
         {
             key: 'user-password',
             label: `Thay đổi mật khẩu`,
-            children: `//todo`,
+            children: <ChangePasswordForm/>,
         },
     ];
 

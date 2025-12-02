@@ -7,7 +7,7 @@ const styles = {
   // Container chính (Tailwind: bottom-6 right-6 z-[9999])
   mainContainer: {
     position: "fixed" as "fixed", // 🚨 Quan trọng: Sửa từ 'absolute' sang 'fixed' cho widget
-    bottom: 24,
+    bottom: 80,
     right: 24,
     zIndex: 9999,
   },

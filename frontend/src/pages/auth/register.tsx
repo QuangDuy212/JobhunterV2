@@ -21,7 +21,7 @@ const RegisterPage = () => {
             navigate('/login')
         } else {
             notification.error({
-                message: "Có lỗi xảy ra",
+                message: "Error occur",
                 description:
                     res.message && Array.isArray(res.message) ? res.message[0] : res.message,
                 duration: 5

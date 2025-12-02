@@ -19,4 +19,5 @@ public interface PermissionRepository extends JpaRepository<Permission, Long>, J
     List<Permission> findAllByDeletedTrue();
 
     List<Permission> findAllByDeletedTrueAndDeletedAtBefore(LocalDateTime deletedAt);
+    Permission findByApiPathAndMethod(String apiPath, String method);
 }

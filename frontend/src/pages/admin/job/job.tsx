@@ -32,7 +32,7 @@ const JobPage = () => {
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -67,7 +67,7 @@ const JobPage = () => {
 
     const columns: ProColumns<IJob>[] = [
         {
-            title: 'STT',
+            title: 'No',
             key: 'index',
             width: 50,
             align: "center",
@@ -80,18 +80,18 @@ const JobPage = () => {
             hideInSearch: true,
         },
         {
-            title: 'Tên Job',
+            title: 'Name',
             dataIndex: 'name',
             sorter: true,
         },
         {
-            title: 'Công ty',
+            title: 'Company',
             dataIndex: ["company", "name"],
             sorter: true,
             hideInSearch: true,
         },
         {
-            title: 'Mức lương',
+            title: 'Quanlity',
             dataIndex: 'salary',
             sorter: true,
             render(dom, entity, index, action, schema) {
@@ -196,11 +196,11 @@ const JobPage = () => {
                     >
                         <Popconfirm
                             placement="leftTop"
-                            title={"Xác nhận xóa job"}
-                            description={"Bạn có chắc chắn muốn xóa job này ?"}
+                            title={"Confirm delete job"}
+                            description={"Are you sure delete this job ?"}
                             onConfirm={() => handleDeleteJob(entity.id)}
-                            okText="Xác nhận"
-                            cancelText="Hủy"
+                            okText="Confirm"
+                            cancelText="Cancel"
                         >
                             <span style={{ cursor: "pointer", margin: "0 10px" }}>
                                 <DeleteOutlined
@@ -270,7 +270,7 @@ const JobPage = () => {
             >
                 <DataTable<IJob>
                     actionRef={tableRef}
-                    headerTitle="Danh sách Jobs"
+                    headerTitle="List Jobs"
                     rowKey="id"
                     loading={isFetching}
                     columns={columns}
@@ -286,7 +286,7 @@ const JobPage = () => {
                             pageSize: meta.pageSize,
                             showSizeChanger: true,
                             total: meta.total,
-                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>) }
+                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} per {total} rows</div>) }
                         }
                     }
                     rowSelection={false}
@@ -297,7 +297,7 @@ const JobPage = () => {
                                 type="primary"
                                 onClick={() => navigate('upsert')}
                             >
-                                Thêm mới
+                                New
                             </Button>
                         );
                     }}

@@ -36,13 +36,14 @@ const ApplyModal = (props: IProps) => {
         else {
             //todo
             if (jobDetail) {
+                console.log(">> Rải CV ", urlCV);
                 const res = await callCreateResume(urlCV, jobDetail?.id, user.email, user.id);
                 if (res.data) {
                     message.success("Rải CV thành công!");
                     setIsModalOpen(false);
                 } else {
                     notification.error({
-                        message: 'Có lỗi xảy ra',
+                        message: 'Error occur',
                         description: res.message
                     });
                 }
@@ -74,7 +75,7 @@ const ApplyModal = (props: IProps) => {
             if (info.file.status === 'done') {
                 message.success(`${info.file.name} file uploaded successfully`);
             } else if (info.file.status === 'error') {
-                message.error(info?.file?.error?.event?.message ?? "Đã có lỗi xảy ra khi upload file.")
+                message.error(info?.file?.error?.event?.message ?? "Đã Error occur khi upload file.")
             }
         },
     };

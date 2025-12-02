@@ -29,7 +29,7 @@ const ViewDetailResume = (props: IProps) => {
             reloadTable();
         } else {
             notification.error({
-                message: 'Có lỗi xảy ra',
+                message: 'Error occur',
                 description: res.message
             });
         }

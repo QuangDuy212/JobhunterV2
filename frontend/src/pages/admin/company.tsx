@@ -29,11 +29,11 @@ const CompanyPage = () => {
         if (id) {
             const res = await callDeleteCompany(id);
             if (res && +res.statusCode === 200) {
-                message.success('Xóa Company thành công');
+                message.success('Delete company successfully');
                 reloadTable();
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -46,7 +46,7 @@ const CompanyPage = () => {
 
     const columns: ProColumns<ICompany>[] = [
         {
-            title: 'STT',
+            title: 'No',
             key: 'index',
             width: 50,
             align: "center",
@@ -122,11 +122,11 @@ const CompanyPage = () => {
                     >
                         <Popconfirm
                             placement="leftTop"
-                            title={"Xác nhận xóa company"}
-                            description={"Bạn có chắc chắn muốn xóa company này ?"}
+                            title={"Confirm delete company"}
+                            description={"Are you sure delete this company  ?"}
                             onConfirm={() => handleDeleteCompany(entity.id)}
-                            okText="Xác nhận"
-                            cancelText="Hủy"
+                            okText="Confirm"
+                            cancelText="Cancel"
                         >
                             <span style={{ cursor: "pointer", margin: "0 10px" }}>
                                 <DeleteOutlined
@@ -196,7 +196,7 @@ const CompanyPage = () => {
             >
                 <DataTable<ICompany>
                     actionRef={tableRef}
-                    headerTitle="Danh sách Công Ty"
+                    headerTitle="List companies"
                     rowKey="id"
                     loading={isFetching}
                     columns={columns}
@@ -212,7 +212,7 @@ const CompanyPage = () => {
                             pageSize: meta.pageSize,
                             showSizeChanger: true,
                             total: meta.total,
-                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>) }
+                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} per {total} rows</div>) }
                         }
                     }
                     rowSelection={false}
@@ -227,7 +227,7 @@ const CompanyPage = () => {
                                     type="primary"
                                     onClick={() => setOpenModal(true)}
                                 >
-                                    Thêm mới
+                                    New
                                 </Button>
                             </Access>
                         );

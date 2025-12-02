@@ -1,3 +1,4 @@
+
 import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, IPermission, IRole, ISkill, ISubscribers } from '@/types/backend';
 import axios from 'config/axios-customize';
 
@@ -23,6 +24,10 @@ export const callRefreshToken = () => {
 
 export const callLogout = () => {
     return axios.post<IBackendRes<string>>('/api/v1/auth/logout')
+}
+
+export const callChangePassword = (currentPassword: string, newPassword: string) => {
+    return axios.post<IBackendRes<string>>('/api/v1/auth/change-password', { currentPassword, newPassword })
 }
 
 /**
@@ -120,6 +125,10 @@ export const callFetchUser = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/v1/users?${query}`);
 }
 
+export const callFetchUserById = (id: string) => {
+    return axios.get<IBackendRes<IUser>>(`/api/v1/users/${id}`);
+}
+
 export const callCountAllUsers = () => {
     return axios.get<IBackendRes<number>>(`/api/v1/users/count-all-users`);
 }
@@ -142,6 +151,10 @@ export const callDeleteJob = (id: string) => {
 
 export const callFetchJob = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<IJob>>>(`/api/v1/jobs?${query}`);
+}
+
+export const callFetchJobForAdmin = (query: string) => {
+    return axios.get<IBackendRes<IModelPaginate<IJob>>>(`/api/v1/admin-jobs?${query}`);
 }
 
 export const callFetchJobById = (id: string) => {
@@ -279,5 +292,10 @@ export const callFetchSubscriber = (query: string) => {
 
 export const callFetchSubscriberById = (id: string) => {
     return axios.get<IBackendRes<ISubscribers>>(`/api/v1/subscribers/${id}`);
+}
+
+// MODULE AUDIT LOG
+export const callFetchAllLog = () =>{
+    return axios.get<IBackendRes<any>>(`/api/v1/admin/audit-logs`);
 }
 

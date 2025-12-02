@@ -32,7 +32,7 @@ const DataTable = <
     rowSelection,
 }: ProTableProps<T, U, ValueType>) => {
     return (
-        <ConfigProvider locale={vi_VN}>
+        <ConfigProvider locale={enUS}>
             <ProTable<T, U, ValueType>
                 columns={columns}
                 defaultData={defaultData}

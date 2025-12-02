@@ -117,6 +117,7 @@ public class ResumeService {
         res.setId(resume.getId());
         res.setEmail(resume.getEmail());
         res.setStatus(resume.getStatus());
+        res.setUrl(resume.getUrl());
         res.setCreatedAt(resume.getCreatedAt());
         res.setCreatedBy(resume.getCreatedBy());
         res.setUpdatedAt(resume.getUpdatedAt());

@@ -64,7 +64,7 @@ const SearchClient = () => {
 
         if (!query) {
             notification.error({
-                message: 'Có lỗi xảy ra',
+                message: 'Error occur',
                 description: "Vui lòng chọn tiêu chí để search"
             });
             return;

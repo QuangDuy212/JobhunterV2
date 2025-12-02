@@ -142,7 +142,7 @@ const ViewUpsertJob = (props: any) => {
                 navigate('/admin/job')
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -174,7 +174,7 @@ const ViewUpsertJob = (props: any) => {
                 navigate('/admin/job')
             } else {
                 notification.error({
-                    message: 'Có lỗi xảy ra',
+                    message: 'Error occur',
                     description: res.message
                 });
             }
@@ -207,7 +207,7 @@ const ViewUpsertJob = (props: any) => {
                         submitter={
                             {
                                 searchConfig: {
-                                    resetText: "Hủy",
+                                    resetText: "Cancel",
                                     submitText: <>{dataUpdate?.id ? "Cập nhật Job" : "Tạo mới Job"}</>
                                 },
                                 onReset: () => navigate('/admin/job'),

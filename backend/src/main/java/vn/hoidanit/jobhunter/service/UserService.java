@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.Role;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.request.ReqChangePasswordDTO;
 import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUpdateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUserDTO;
@@ -17,6 +18,7 @@ import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.CompanyRepository;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 import vn.hoidanit.jobhunter.util.BaseSpecs;
+import vn.hoidanit.jobhunter.util.error.IdInvalidException;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,13 +31,15 @@ public class UserService {
     private final CompanyRepository companyRepository;
     private final CompanyService companyService;
     private final RoleService roleService;
+    private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository, CompanyRepository companyRepository,
-            CompanyService companyService, RoleService roleService) {
+            CompanyService companyService, RoleService roleService,PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.companyService = companyService;
         this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User handleCreateAUser(User user) {
@@ -157,7 +161,7 @@ public class UserService {
             // check role
             if (user.getRole() != null) {
                 Role role = this.roleService.fetchRoleById(user.getRole().getId());
-                user.setRole(role != null ? role : null);
+                currentUser.setRole(role != null ? role : null);
             }
             // update
             currentUser = this.userRepository.save(currentUser);
@@ -255,5 +259,38 @@ public class UserService {
 
     public Long countAllUsers() {
         return this.userRepository.count();
+    }
+
+    public void handleChangePassword(String email, ReqChangePasswordDTO changePasswordDTO) throws IdInvalidException {
+        // 1. Tìm User bằng email
+        User currentUser = this.handleGetUserByUsername(email);
+
+        if (currentUser == null) {
+            throw new IdInvalidException("Không tìm thấy thông tin người dùng!");
+        }
+
+        // 2. Kiểm tra mật khẩu cũ có khớp không
+        boolean isCurrentPasswordCorrect = this.passwordEncoder.matches(
+            changePasswordDTO.getCurrentPassword(), 
+            currentUser.getPassword()
+        );
+
+        if (!isCurrentPasswordCorrect) {
+            throw new IdInvalidException("Mật khẩu cũ không chính xác.");
+        }
+        
+        // 3. Kiểm tra mật khẩu mới và mật khẩu cũ không được giống nhau
+        if (changePasswordDTO.getCurrentPassword().equals(changePasswordDTO.getNewPassword())) {
+            throw new IdInvalidException("Mật khẩu mới không được giống mật khẩu cũ.");
+        }
+
+        // 4. Mã hóa và cập nhật mật khẩu mới
+        String newHashPassword = this.passwordEncoder.encode(changePasswordDTO.getNewPassword());
+        currentUser.setPassword(newHashPassword);
+        
+        // Cần reset refresh token để buộc người dùng đăng nhập lại sau khi đổi mật khẩu (tùy chọn)
+        currentUser.setRefreshToken(null); 
+        
+        this.userRepository.save(currentUser);
     }
 }
