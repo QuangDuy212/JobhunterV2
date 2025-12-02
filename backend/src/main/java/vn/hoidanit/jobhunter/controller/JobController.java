@@ -108,7 +108,7 @@ public class JobController {
         return ResponseEntity.ok().body(this.jobService.fetchDeletedJobs(spec, pageable));
     }
 
-    @GetMapping("/jobs/{id}")
+    @GetMapping("/jobs/fetch-job-detail/{id}")
     @ApiMessage("Fetch job by id")
     public ResponseEntity<Job> fetchJobById(@PathVariable("id") long id) throws IdInvalidException {
         boolean checkExist = this.jobService.isExistId(id);

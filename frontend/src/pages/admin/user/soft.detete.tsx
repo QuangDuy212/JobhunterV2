@@ -2,37 +2,40 @@ import DataTable from "@/components/client/data-table";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { fetchUser } from "@/redux/slice/userSlide";
 import { IUser } from "@/types/backend";
-import { DeleteOutlined, EditOutlined, PlusOutlined, EyeOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusOutlined, EyeOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Space, message, notification } from "antd";
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dayjs from 'dayjs';
-import { callDeleteUser } from "@/config/api";
+import { callDeleteUser, callFetchUserDeleted, callRestoreUser } from "@/config/api";
 import queryString from 'query-string';
 import ModalUser from "@/components/admin/user/modal.user";
 import ViewDetailUser from "@/components/admin/user/view.user";
 import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
 import { sfLike } from "spring-filter-query-builder";
+import { fetchUserDeleted } from "@/redux/slice/userDeletedSlide";
 
-const UserPage = () => {
+const UserDeleted = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [dataInit, setDataInit] = useState<IUser | null>(null);
     const [openViewDetail, setOpenViewDetail] = useState<boolean>(false);
 
     const tableRef = useRef<ActionType>();
 
-    const isFetching = useAppSelector(state => state.user.isFetching);
-    const meta = useAppSelector(state => state.user.meta);
-    const users = useAppSelector(state => state.user.result);
+    const isFetching = useAppSelector(state => state.userDeleted.isFetching);
+    const meta = useAppSelector(state => state.userDeleted.meta);
+    const users = useAppSelector(state => state.userDeleted.result);
     const dispatch = useAppDispatch();
 
-    const handleDeleteUser = async (id: string | undefined) => {
+    const handleRetoreUser = async (id: string | undefined) => {
         if (id) {
-            const res = await callDeleteUser(id);
+            const res = await callRestoreUser(id);
+            console.log("res", res);
             if (+res.statusCode === 200) {
-                message.success('Delete user successfully');
+                message.success('Restore user successfully');
                 reloadTable();
+                dispatch(fetchUser({ query: "?page=1&size=10&sort=updatedAt,desc" })); // Refresh deleted users tab
             } else {
                 notification.error({
                     message: 'Error occur',
@@ -117,44 +120,17 @@ const UserPage = () => {
             render: (_value, entity, _index, _action) => (
                 <Space>
                     < Access
-                        permission={ALL_PERMISSIONS.USERS.UPDATE}
+                        permission={ALL_PERMISSIONS.USERS.RESTORE}
                         hideChildren
                     >
-                        <EditOutlined
+                        <ClockCircleOutlined
                             style={{
                                 fontSize: 20,
                                 color: '#ffa500',
                             }}
                             type=""
-                            onClick={() => {
-                                setOpenModal(true);
-                                setDataInit(entity);
-                            }}
-                        />
+                            onClick={() => { handleRetoreUser(entity.id) }} />
                     </Access >
-
-                    <Access
-                        permission={ALL_PERMISSIONS.USERS.DELETE}
-                        hideChildren
-                    >
-                        <Popconfirm
-                            placement="leftTop"
-                            title={"Confirm delete user"}
-                            description={"Are you sure delete this user ?"}
-                            onConfirm={() => handleDeleteUser(entity.id)}
-                            okText="Confirm"
-                            cancelText="Cancel"
-                        >
-                            <span style={{ cursor: "pointer", margin: "0 10px" }}>
-                                <DeleteOutlined
-                                    style={{
-                                        fontSize: 20,
-                                        color: '#ff4d4f',
-                                    }}
-                                />
-                            </span>
-                        </Popconfirm>
-                    </Access>
                 </Space >
             ),
 
@@ -217,7 +193,7 @@ const UserPage = () => {
                     dataSource={users}
                     request={async (params, sort, filter): Promise<any> => {
                         const query = buildQuery(params, sort, filter);
-                        dispatch(fetchUser({ query }))
+                        dispatch(fetchUserDeleted({ query }))
                     }}
                     scroll={{ x: true }}
                     pagination={
@@ -230,17 +206,6 @@ const UserPage = () => {
                         }
                     }
                     rowSelection={false}
-                    toolBarRender={(_action, _rows): any => {
-                        return (
-                            <Button
-                                icon={<PlusOutlined />}
-                                type="primary"
-                                onClick={() => setOpenModal(true)}
-                            >
-                                New
-                            </Button>
-                        );
-                    }}
                 />
             </Access>
             <ModalUser
@@ -260,4 +225,4 @@ const UserPage = () => {
     )
 }
 
-export default UserPage;
+export default UserDeleted;

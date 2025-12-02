@@ -21,7 +21,7 @@ import CompanyPage from './pages/admin/company';
 import PermissionPage from './pages/admin/permission';
 import ResumePage from './pages/admin/resume';
 import RolePage from './pages/admin/role';
-import UserPage from './pages/admin/user';
+import UserPage from './pages/admin/user/user';
 import { fetchAccount } from './redux/slice/accountSlide';
 import LayoutApp from './components/share/layout.app';
 import ViewUpsertJob from './components/admin/job/upsert.job';
@@ -30,6 +30,7 @@ import ClientJobDetailPage from './pages/job/detail';
 import ClientCompanyPage from './pages/company';
 import ClientCompanyDetailPage from './pages/company/detail';
 import JobTabs from './pages/admin/job/job.tabs';
+import UserTabs from './pages/admin/user/user.tabs';
 
 const LayoutClient = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +49,7 @@ const LayoutClient = () => {
       <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <div className={styles['content-app']}>
         <Outlet context={[searchTerm, setSearchTerm]} />
-        
+
       </div>
       <Footer />
     </div>
@@ -103,10 +104,12 @@ export default function App() {
         },
         {
           path: "user",
-          element:
-            <ProtectedRoute>
-              <UserPage />
-            </ProtectedRoute>
+          children: [
+            {
+              index: true,
+              element: <ProtectedRoute><UserTabs /></ProtectedRoute>
+            },
+          ]
         },
 
         {

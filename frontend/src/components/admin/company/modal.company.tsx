@@ -226,7 +226,7 @@ const ModalCompany = (props: IProps) => {
                                     <ConfigProvider locale={enUS}>
                                         <Upload
                                             name="logo"
-                                            liNoype="picture-card"
+                                            listType="picture-card"
                                             className="avatar-uploader"
                                             maxCount={1}
                                             multiple={false}

@@ -14,6 +14,7 @@ import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
 import { sfIn } from "spring-filter-query-builder";
 import { JobStatusEnum } from "@/constant/common.enum";
+import { fetchUserDeleted } from "@/redux/slice/userDeletedSlide";
 
 const JobPage = () => {
     const tableRef = useRef<ActionType>();

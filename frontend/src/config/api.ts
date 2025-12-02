@@ -99,7 +99,7 @@ export const callFetchAllSkill = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<ISkill>>>(`/api/v1/skills?${query}`);
 }
 
-export const callCountAllSkills = () =>{
+export const callCountAllSkills = () => {
     return axios.get<IBackendRes<number>>(`/api/v1/skills/count-all-skills`);
 }
 
@@ -123,6 +123,14 @@ export const callDeleteUser = (id: string) => {
 
 export const callFetchUser = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/v1/users?${query}`);
+}
+
+export const callFetchUserDeleted = (query: string) => {
+    return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/v1/users/deleted?${query}`);
+}
+
+export const callRestoreUser = (id: string) => {
+    return axios.put<IBackendRes<IModelPaginate<IUser>>>(`/api/v1/users/restore/${id}`);
 }
 
 export const callFetchUserById = (id: string) => {
@@ -158,14 +166,14 @@ export const callFetchJobForAdmin = (query: string) => {
 }
 
 export const callFetchJobById = (id: string) => {
-    return axios.get<IBackendRes<IJob>>(`/api/v1/jobs/${id}`);
+    return axios.get<IBackendRes<IJob>>(`/api/v1/jobs/fetch-job-detail/${id}`);
 }
 
 export const callCountAllJobs = () => {
     return axios.get<IBackendRes<number>>(`/api/v1/jobs/count-all-jobs`);
 }
 
-export const callFetchJobsBySkill = (id: string) =>{
+export const callFetchJobsBySkill = (id: string) => {
     return axios.get<IBackendRes<IJob[]>>(`/api/v1/jobs/fetch-by-skill/${id}`);
 }
 
@@ -214,8 +222,8 @@ export const callCountResumesByTime = (year: number, month: number) => {
     return axios.get<IBackendRes<number>>(`/api/v1/resumes/count-resumes-by-time?year=${year}&month=${month}`);
 }
 
-export const callCountResumesByStatus = ()=>{
-    return axios.get<IBackendRes<{status: string, count: number}[]>>(`/api/v1/resumes/count/count-by-status`);
+export const callCountResumesByStatus = () => {
+    return axios.get<IBackendRes<{ status: string, count: number }[]>>(`/api/v1/resumes/count/count-by-status`);
 }
 
 /**
@@ -295,7 +303,7 @@ export const callFetchSubscriberById = (id: string) => {
 }
 
 // MODULE AUDIT LOG
-export const callFetchAllLog = () =>{
+export const callFetchAllLog = () => {
     return axios.get<IBackendRes<any>>(`/api/v1/admin/audit-logs`);
 }
 
