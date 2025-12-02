@@ -27,6 +27,7 @@ import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.Job;
 import vn.hoidanit.jobhunter.domain.Resume;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.response.ResIdDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResCountResumeByStausDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResCreateResumeDTO;
@@ -215,28 +216,37 @@ public class ResumeController {
 
         return ResponseEntity.ok(this.resumeService.fetchDeletedResumes(finalSpec, pageable));
     }
+
     @DeleteMapping("/resumes/hard/{id}")
     @ApiMessage("delete resume by id")
-    public ResponseEntity<Void> deleteResume(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> deleteResume(@PathVariable("id") long id) throws IdInvalidException {
         Resume resume = this.resumeService.fetchResumeById(id);
         if (resume == null) {
             throw new IdInvalidException("Resume not found");
         }
         this.resumeService.handleDeleteResume(id);
-        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
+
     @DeleteMapping("/resumes/{id}")
     @ApiMessage("delete resume by id")
-    public ResponseEntity<Void> softDeleteResume(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> softDeleteResume(@PathVariable("id") long id) throws IdInvalidException {
         Resume resume = this.resumeService.fetchResumeById(id);
         if (resume == null) {
             throw new IdInvalidException("Resume not found");
         }
         this.resumeService.softDeleteResume(id);
-        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
+
     @PostMapping("/resumes/by-user")
     @ApiMessage("Get list resumes by user")
     public ResponseEntity<ResultPaginationDTO> fetchResumeByUser(Pageable pageable)

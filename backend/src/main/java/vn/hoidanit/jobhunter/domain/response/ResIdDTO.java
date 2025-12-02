@@ -8,7 +8,7 @@ import vn.hoidanit.jobhunter.util.constant.GenderEnum;
 
 @Getter
 @Setter
-public class ResDeleteUserDTO {
+public class ResIdDTO {
     private long id;
 
 }

@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO;
-import vn.hoidanit.jobhunter.domain.response.ResDeleteUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResIdDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUpdateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
@@ -64,41 +64,50 @@ public class UserController {
 
     @DeleteMapping("/users/{id}")
     @ApiMessage("delete user by id")
-    public ResponseEntity<ResDeleteUserDTO> softDeleteUser(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> softDeleteUser(@PathVariable("id") long id) throws IdInvalidException {
         User currentUser = this.userService.fetchUserById(id);
         if (currentUser == null) {
             throw new IdInvalidException("User với id = " + id + " không tồn tại");
         }
         this.userService.softDeleteUser(id);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResDeleteUserDTO(){{
-            setId(id);
-        }});
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
+
     @DeleteMapping("/users/hard/{id}")
     @ApiMessage("delete user by id")
-    public ResponseEntity<ResDeleteUserDTO> hardDeleteUser(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> hardDeleteUser(@PathVariable("id") long id) throws IdInvalidException {
         User currentUser = this.userService.fetchUserById(id);
         if (currentUser == null) {
             throw new IdInvalidException("User với id = " + id + " không tồn tại");
         }
         this.userService.hardDeleteUser(id);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResDeleteUserDTO(){{
-            setId(id);
-        }});
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
+
     @PutMapping("/users/restore/{id}")
     @ApiMessage("restore user by id")
-    public ResponseEntity<ResDeleteUserDTO> restoreUser(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> restoreUser(@PathVariable("id") long id) throws IdInvalidException {
         User currentUser = this.userService.fetchUserById(id);
         if (currentUser == null) {
             throw new IdInvalidException("User với id = " + id + " không tồn tại");
         }
-        //TODO: process PUT request
+        // TODO: process PUT request
         this.userService.restore(id);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResDeleteUserDTO(){{
-            setId(id);
-        }});
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
+
     @GetMapping("/users/{id}")
     @ApiMessage("fetch user by id")
     public ResponseEntity<ResUserDTO> fetchUserById(@PathVariable("id") long id) throws IdInvalidException {
@@ -112,7 +121,7 @@ public class UserController {
         // return ResponseEntity.status(HttpStatus.OK).body(user);
         return ResponseEntity.ok(res);
     }
-    
+
     @GetMapping("/users")
     @ApiMessage("fetch all users")
     public ResponseEntity<ResultPaginationDTO> fetchAllUsers(
@@ -134,7 +143,7 @@ public class UserController {
         // return ResponseEntity.status(HttpStatus.OK).body(users);
         return ResponseEntity.ok(this.userService.fetchDeletedUsers(spec, pageable));
     }
-    
+
     @PutMapping("/users")
     @ApiMessage("update a user")
     public ResponseEntity<ResUpdateUserDTO> updateAUser(@RequestBody User user) throws IdInvalidException {
@@ -155,6 +164,5 @@ public class UserController {
         long count = this.userService.countAllUsers();
         return ResponseEntity.ok(count);
     }
-    
 
 }

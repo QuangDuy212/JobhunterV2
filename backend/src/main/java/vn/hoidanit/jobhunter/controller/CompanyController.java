@@ -7,6 +7,7 @@ import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.response.ResIdDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.CompanyService;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
@@ -54,6 +55,7 @@ public class CompanyController {
         // fetch all companies
         return ResponseEntity.ok(this.companyService.fetchAllCompanies(spec, pageable));
     }
+
     @GetMapping("/companies/deleted")
     @ApiMessage("fetch deleted company")
     public ResponseEntity<ResultPaginationDTO> fetchDeletedCompanies(
@@ -82,37 +84,50 @@ public class CompanyController {
 
     @DeleteMapping("/companies/hard/{id}")
     @ApiMessage("hard delete company by id")
-    public ResponseEntity<Void> deleteCompany(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> deleteCompany(@PathVariable("id") long id) throws IdInvalidException {
         Optional<Company> company = this.companyService.fetchCompanyById(id);
         if (!company.isPresent()) {
             throw new IdInvalidException("Không tồn tại công ty với ID được truyền vào");
         }
         this.companyService.handleDeleteCompany(id);
-        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
+
     @DeleteMapping("/companies/{id}")
     @ApiMessage("delete company by id")
-    public ResponseEntity<Void> softDeleteCompany(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> softDeleteCompany(@PathVariable("id") long id) throws IdInvalidException {
         Optional<Company> company = this.companyService.fetchCompanyById(id);
         if (!company.isPresent()) {
             throw new IdInvalidException("Không tồn tại công ty với ID được truyền vào");
         }
         this.companyService.softDeleteCompany(id);
-        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
+
     @PutMapping("/companies/restore/{id}")
     @ApiMessage("restore company by id")
-    public ResponseEntity<?> restoreCompany(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> restoreCompany(@PathVariable("id") long id) throws IdInvalidException {
         Optional<Company> company = this.companyService.fetchCompanyById(id);
         if (company == null) {
             throw new IdInvalidException("User với id = " + id + " không tồn tại");
         }
-        //TODO: process PUT request
+        // TODO: process PUT request
         this.companyService.restoreCompany(id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
+
     @GetMapping("/companies/count-all-companies")
     @ApiMessage("Fetch count all companies")
     public ResponseEntity<Long> countAllCompanies() {

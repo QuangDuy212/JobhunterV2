@@ -18,6 +18,7 @@ import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.Permission;
 import vn.hoidanit.jobhunter.domain.Role;
+import vn.hoidanit.jobhunter.domain.response.ResIdDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.PermissionService;
 import vn.hoidanit.jobhunter.service.UserService;
@@ -79,6 +80,7 @@ public class PermissionController {
             Pageable pageable) {
         return ResponseEntity.ok(this.permissionService.fetchAllPermissions(spec, pageable));
     }
+
     @GetMapping("/permissions/deleted")
     @ApiMessage("fetch deleted permissions")
     public ResponseEntity<ResultPaginationDTO> fetchDeletedPermissions(
@@ -100,36 +102,46 @@ public class PermissionController {
 
     @DeleteMapping("/permissions/hard/{id}")
     @ApiMessage("hard delete permission by id")
-    public ResponseEntity<Void> deletePermission(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> deletePermission(@PathVariable("id") long id) throws IdInvalidException {
         Permission permission = this.permissionService.fetchPermissionById(id);
         if (permission == null) {
             throw new IdInvalidException("Permission not found");
         }
         this.permissionService.handleDeletePermission(id);
-        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
 
     @DeleteMapping("/permissions/{id}")
     @ApiMessage("delete permission by id")
-    public ResponseEntity<Void> softDeletePermission(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> softDeletePermission(@PathVariable("id") long id) throws IdInvalidException {
         Permission permission = this.permissionService.fetchPermissionById(id);
         if (permission == null) {
             throw new IdInvalidException("Permission not found");
         }
         this.permissionService.softDeletePermission(id);
-        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
 
     @PutMapping("/permissions/restore/{id}")
     @ApiMessage("restore deleted permission by id")
-    public ResponseEntity<Void> restorePermission(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> restorePermission(@PathVariable("id") long id) throws IdInvalidException {
         Permission permission = this.permissionService.fetchPermissionById(id);
         if (permission == null) {
             throw new IdInvalidException("Permission not found");
         }
         this.permissionService.restorePermission(id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
 }

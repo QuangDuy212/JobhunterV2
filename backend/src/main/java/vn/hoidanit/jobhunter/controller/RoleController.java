@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.Permission;
 import vn.hoidanit.jobhunter.domain.Role;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.response.ResIdDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.RoleService;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
@@ -73,6 +74,7 @@ public class RoleController {
         // return ResponseEntity.status(HttpStatus.OK).body(users);
         return ResponseEntity.ok(this.roleService.fetchAllRoles(spec, pageable));
     }
+
     @GetMapping("/roles/deleted")
     @ApiMessage("fetch deleted roles")
     public ResponseEntity<ResultPaginationDTO> fetchDeletedRoles(
@@ -94,37 +96,49 @@ public class RoleController {
         // return ResponseEntity.status(HttpStatus.OK).body(user);
         return ResponseEntity.ok(role);
     }
+
     @DeleteMapping("/roles/hard/{id}")
     @ApiMessage("delete role by id")
-    public ResponseEntity<Void> deleteRole(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> deleteRole(@PathVariable("id") long id) throws IdInvalidException {
         Role role = this.roleService.fetchRoleById(id);
         if (role == null) {
             throw new IdInvalidException("Role not found");
         }
         this.roleService.handleDeleteARole(id);
-        // return ResponseEntity.status(HttpStatus.OK).body("id: " + id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
 
     @DeleteMapping("/roles/{id}")
     @ApiMessage("soft delete role by id")
-    public ResponseEntity<Void> softDeleteRole(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> softDeleteRole(@PathVariable("id") long id) throws IdInvalidException {
         Role role = this.roleService.fetchRoleById(id);
         if (role == null) {
             throw new IdInvalidException("Role not found");
         }
         this.roleService.softDeleteRole(id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
 
     @PutMapping("/roles/restore/{id}")
     @ApiMessage("restore deleted role by id")
-    public ResponseEntity<Void> restoreRole(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResIdDTO> restoreRole(@PathVariable("id") long id) throws IdInvalidException {
         Role role = this.roleService.fetchRoleById(id);
         if (role == null) {
             throw new IdInvalidException("Role not found");
         }
         this.roleService.restoreRole(id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResIdDTO() {
+            {
+                setId(id);
+            }
+        });
     }
 }
