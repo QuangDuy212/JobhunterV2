@@ -83,12 +83,13 @@
         align-items: center;
         justify-content: center;
 
-        svg {
+        img {
             cursor: pointer;
             color: #1677ff;
             font-size: 30px;
-            margin-top: 7px;
-            animation: spin 20s linear infinite;
+            height: 50px;
+            width: 50px;
+            border-radius: 50%;
         }
     }
 

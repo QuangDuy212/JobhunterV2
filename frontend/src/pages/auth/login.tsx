@@ -35,7 +35,11 @@ const LoginPage = () => {
             localStorage.setItem('access_token', res.data.access_token);
             dispatch(setUserLoginInfo(res.data.user))
             message.success('Đăng nhập tài khoản thành công!');
-            window.location.href = callback ? callback : '/';
+            if(res.data.user.role && res.data.user.role.name === 'Admin'){
+                window.location.href = '/admin';
+            }else{
+                window.location.href = callback ? callback : '/';
+            }
         } else {
             notification.error({
                 message: "Error occur",

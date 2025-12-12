@@ -13,7 +13,14 @@ spring:
     username: root
     password: 1012004
     driver-class-name: com.mysql.cj.jdbc.Driver
-
+    hikari:
+      pool-name: MyHikariCP
+      maximum-pool-size: 10 # số connection tối đa
+      minimum-idle: 5 # số connection giữ sẵn
+      idle-timeout: 30000 # 30s không dùng thì cho nghỉ
+      max-lifetime: 1800000 # max sống 30 phút
+      connection-timeout: 30000 # max 30s để lấy connection
+      auto-commit: true
   jpa:
     hibernate:
       ddl-auto: update

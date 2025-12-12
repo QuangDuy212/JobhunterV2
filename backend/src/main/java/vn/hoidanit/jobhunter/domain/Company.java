@@ -35,6 +35,7 @@ public class Company {
     private String description;
     private String address;
     private String logo;
+    private Boolean isActive;
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;

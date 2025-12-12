@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import lombok.Getter;
 import lombok.Setter;
+import vn.hoidanit.jobhunter.domain.Role;
 import vn.hoidanit.jobhunter.util.constant.GenderEnum;
 
 @Getter
@@ -15,6 +16,7 @@ public class ResCreateUserDTO {
     private GenderEnum gender;
     private String address;
     private int age;
+    private Role role;
     // @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
     private Instant createdAt;
     private CompanyUser company;

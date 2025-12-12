@@ -154,7 +154,7 @@ export const callFetchJob = (query: string) => {
 }
 
 export const callFetchJobForAdmin = (query: string) => {
-    return axios.get<IBackendRes<IModelPaginate<IJob>>>(`/api/v1/admin-jobs?${query}`);
+    return axios.get<IBackendRes<IModelPaginate<IJob>>>(`/api/v1/jobs/admin/all-jobs?${query}`);
 }
 
 export const callFetchJobById = (id: string) => {

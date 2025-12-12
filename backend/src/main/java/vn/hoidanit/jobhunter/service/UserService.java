@@ -47,10 +47,10 @@ public class UserService {
         }
 
         // check role
-        if (user.getRole() != null) {
-            Role role = this.roleService.fetchRoleById(user.getRole().getId());
-            user.setRole(role != null ? role : null);
-        }
+        // if (user.getRole() != null) {
+        //     Role role = this.roleService.fetchRoleById(user.getRole().getId());
+        //     user.setRole(role != null ? role : null);
+        // }
         return this.userRepository.save(user);
     }
 
@@ -242,5 +242,32 @@ public class UserService {
         currentUser.setRefreshToken(null); 
         
         this.userRepository.save(currentUser);
+    }
+
+    //-----------------------------------------------------
+    // PHƯƠNG THỨC HỖ TRỢ THANH TOÁN (WEBHOOK LOGIC)
+    //-----------------------------------------------------
+    /**
+     * Kích hoạt trạng thái hoạt động của Công ty sau khi thanh toán thành công.
+     * Phương thức này được gọi từ PaymentService (Webhook) sau khi xác nhận giao dịch.
+     * @param companyId ID của Công ty cần kích hoạt.
+     * @throws IdInvalidException nếu không tìm thấy Công ty.
+     */
+    public void activateCompany(long companyId) throws IdInvalidException {
+        // 1. Tìm Company
+        Company company = this.companyRepository.findById(companyId)
+            .orElseThrow(() -> new IdInvalidException("Company không tồn tại với ID: " + companyId));
+
+        // 2. Kích hoạt Company 
+        // LƯU Ý: Bạn cần đảm bảo Company Entity có trường 'isActive' hoặc tương đương.
+        
+        // GIẢ SỬ Company Entity có trường 'isActive' kiểu boolean:
+        company.setIsActive(true); 
+        
+        // HOẶC nếu bạn dùng Enum (ví dụ: CompanyStatus.ACTIVE)
+        // company.setStatus(CompanyStatus.ACTIVE); 
+
+        // 3. Lưu thay đổi
+        this.companyRepository.save(company);
     }
 }

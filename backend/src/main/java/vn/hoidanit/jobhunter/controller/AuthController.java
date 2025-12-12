@@ -17,14 +17,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import vn.hoidanit.jobhunter.domain.Role;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.request.ReqChangePasswordDTO;
 import vn.hoidanit.jobhunter.domain.request.ReqLoginDTO;
 import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResLoginDTO;
+import vn.hoidanit.jobhunter.domain.response.ResRegisterCompanyDTO;
+import vn.hoidanit.jobhunter.service.RoleService;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
+import vn.hoidanit.jobhunter.util.constant.RoleEnum;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
 
 import org.springframework.web.bind.annotation.CookieValue;
@@ -38,16 +42,22 @@ public class AuthController {
         private final SecurityUtil securityUtil;
         private final UserService userService;
         private final PasswordEncoder passwordEncoder;
+        private final RoleService roleService;
 
         @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
         private long refreshTokenExpiration;
 
-        public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtil securityUtil,
-                        UserService userService, PasswordEncoder passwordEncoder) {
+        public AuthController(
+                        AuthenticationManagerBuilder authenticationManagerBuilder,
+                        SecurityUtil securityUtil,
+                        UserService userService,
+                        PasswordEncoder passwordEncoder,
+                        RoleService roleService) {
                 this.authenticationManagerBuilder = authenticationManagerBuilder;
                 this.securityUtil = securityUtil;
                 this.userService = userService;
                 this.passwordEncoder = passwordEncoder;
+                this.roleService = roleService;
         }
 
         @PostMapping("/auth/login")
@@ -87,8 +97,8 @@ public class AuthController {
                 // set cookies
                 ResponseCookie resCookies = ResponseCookie
                                 .from("refresh_token", refresh_token)
-                                .httpOnly(true)
-                                .secure(true)
+                                .httpOnly(false)
+                                .secure(false)
                                 .path("/")
                                 .maxAge(refreshTokenExpiration)
                                 .build();
@@ -157,8 +167,8 @@ public class AuthController {
                 // set cookies
                 ResponseCookie resCookies = ResponseCookie
                                 .from("refresh_token", new_refresh_token)
-                                .httpOnly(true)
-                                .secure(true)
+                                .httpOnly(false)
+                                .secure(false)
                                 .path("/")
                                 .maxAge(refreshTokenExpiration)
                                 .build();
@@ -183,8 +193,8 @@ public class AuthController {
                 // remove refresh_token in cookies
                 ResponseCookie deleteSpringCookie = ResponseCookie
                                 .from("refresh_token", null)
-                                .httpOnly(true)
-                                .secure(true)
+                                .httpOnly(false)
+                                .secure(false)
                                 .path("/")
                                 .maxAge(0)
                                 .build();
@@ -196,31 +206,51 @@ public class AuthController {
         @PostMapping("/auth/register")
         @ApiMessage("Register a new user")
         public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody User user) throws IdInvalidException {
+                // 1. Kiểm tra Email tồn tại
                 boolean isExists = this.userService.isEmailExist(user.getEmail());
                 if (isExists) {
                         throw new IdInvalidException("Email đã tồn tại, vui lòng nhập lại!");
                 }
+
+                // 2. Mã hóa mật khẩu
                 String hashPass = passwordEncoder.encode(user.getPassword());
                 user.setPassword(hashPass);
-                User ericUser = this.userService.handleCreateAUser(user);
-                // convert to ResCreateUserDTO to display
-                ResCreateUserDTO res = this.userService.convertToResCreateUserDTO(ericUser);
+
+                // 3. Xử lý Role
+                if (user.getRole() != null) {
+                        Role foundRole = this.roleService.getRoleByName(user.getRole().getName());
+                        if (foundRole != null) {
+                                user.setRole(foundRole);
+                        } else {
+                                throw new IdInvalidException("Vai trò đăng ký không hợp lệ!");
+                        }
+                } else {
+                        // Set role mặc định nếu không gửi lên (ví dụ: CANDIDATE)
+                        user.setRole(this.roleService.getRoleByName(RoleEnum.USER.name()));
+                }
+
+                // 4. Tạo User
+                User createdUser = this.userService.handleCreateAUser(user);
+
+                // 5. Kiểm tra và xử lý thanh toán cho COMPANY
+                ResCreateUserDTO res = this.userService.convertToResCreateUserDTO(createdUser);
                 return ResponseEntity.status(HttpStatus.CREATED).body(res);
         }
 
         @PostMapping("/auth/change-password")
         @ApiMessage("Change password successfully")
         public ResponseEntity<Void> changePassword(@Valid @RequestBody ReqChangePasswordDTO changePasswordDTO)
-                throws IdInvalidException {
+                        throws IdInvalidException {
                 String email = SecurityUtil.getCurrentUserLogin().isPresent()
-                                 ? SecurityUtil.getCurrentUserLogin().get() : "";
+                                ? SecurityUtil.getCurrentUserLogin().get()
+                                : "";
 
                 if (email.isEmpty()) {
-                 throw new IdInvalidException("Bạn cần phải đăng nhập để thay đổi mật khẩu!");
+                        throw new IdInvalidException("Bạn cần phải đăng nhập để thay đổi mật khẩu!");
                 }
-        
+
                 this.userService.handleChangePassword(email, changePasswordDTO);
-        
+
                 return ResponseEntity.ok().body(null);
         }
 }

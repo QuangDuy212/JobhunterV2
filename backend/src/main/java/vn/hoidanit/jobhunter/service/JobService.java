@@ -243,6 +243,16 @@ public class JobService {
         //     criteriaBuilder.equal(root.get("company").get("id"), currentUserDB.getCompany().getId());
         //     spec = spec == null ? companySpec : spec.and(companySpec);
         // }
+
+        // --- BỔ SUNG LOGIC LỌC THEO STATUS = 'APPROVED' ---
+        
+        // 1. Tạo Specification mới để lọc các job có status là APPROVED
+        Specification<Job> approvedSpec = (root, query, criteriaBuilder) -> 
+            criteriaBuilder.equal(root.get("status"), "APPROVED");
+
+        // 2. Kết hợp Specification hiện có (spec) với điều kiện APPROVED
+        // Nếu spec ban đầu là null, ta chỉ dùng approvedSpec. Nếu không null, ta dùng cả hai.
+        spec = spec == null ? approvedSpec : spec.and(approvedSpec);
         Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
 
         List<Job> listJob = pageJob.getContent();

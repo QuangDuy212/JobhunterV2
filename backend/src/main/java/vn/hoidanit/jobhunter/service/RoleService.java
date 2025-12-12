@@ -13,6 +13,7 @@ import vn.hoidanit.jobhunter.domain.Permission;
 import vn.hoidanit.jobhunter.domain.Role;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.RoleRepository;
+import vn.hoidanit.jobhunter.util.constant.RoleEnum;
 
 @Service
 public class RoleService {
@@ -93,5 +94,22 @@ public class RoleService {
 
     public void handleDeleteARole(long id) {
         this.roleRepository.deleteById(id);
+    }
+
+    public Role getRoleByName(String name) {
+        if (RoleEnum.COMPANY.name().equalsIgnoreCase(name)) {
+            Role companyRole = new Role();
+            companyRole.setName(RoleEnum.COMPANY.name());
+            companyRole.setId(2L); // Giả định ID của COMPANY Role là 2
+            return companyRole;
+        }
+        // Giả định Role mặc định là CANDIDATE nếu không có Role nào khác
+        if (RoleEnum.USER.name().equalsIgnoreCase(name)) {
+            Role candidateRole = new Role();
+            candidateRole.setName(RoleEnum.USER.name());
+            candidateRole.setId(1L); // Giả định ID của CANDIDATE Role là 1
+            return candidateRole;
+        }
+        return null;
     }
 }

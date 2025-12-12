@@ -66,8 +66,40 @@ export default function App() {
       || window.location.pathname === '/register'
     )
       return;
+    
     dispatch(fetchAccount())
   }, [])
+
+  useEffect(() => {
+    let oldRefreshToken: any = null;
+    const getCookieValue = (name: string) => {
+      const cookies = document.cookie.split("; ");
+      for (let cookie of cookies) {
+        const [key, value] = cookie.split("=");
+        if (key === name) return value;
+      }
+      return null;
+    };
+
+    const interval = setInterval(() => {
+      
+      if (window.location.pathname === "/admin") {
+        const refreshToken = getCookieValue("refresh_token");
+        if (oldRefreshToken !== null && refreshToken !== oldRefreshToken) {
+          console.log("Refresh token has changed. Redirecting to login...");
+          localStorage.removeItem('access_token');
+          document.location.href = "/login";
+        }
+        oldRefreshToken = refreshToken;
+      }
+      const refreshToken = getCookieValue("refresh_token");
+      if (refreshToken && window.location.pathname === "/login") {
+        
+        document.location.href = "/";
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   const router = createBrowserRouter([
     {

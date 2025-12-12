@@ -6,7 +6,7 @@ export const ALL_PERMISSIONS = {
         DELETE: { method: "DELETE", apiPath: '/api/v1/companies/{id}', module: "COMPANIES" },
     },
     JOBS: {
-        GET_PAGINATE: { method: "GET", apiPath: '/api/v1/admin-jobs', module: "JOBS" },
+        GET_PAGINATE: { method: "GET", apiPath: '/api/v1/jobs/admin/all-jobs', module: "JOBS" },
         CREATE: { method: "POST", apiPath: '/api/v1/jobs', module: "JOBS" },
         UPDATE: { method: "PUT", apiPath: '/api/v1/jobs', module: "JOBS" },
         DELETE: { method: "DELETE", apiPath: '/api/v1/jobs/{id}', module: "JOBS" },
