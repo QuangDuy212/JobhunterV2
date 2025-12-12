@@ -122,7 +122,7 @@ const PermissionDeleted = () => {
             render: (_value, entity, _index, _action) => (
                 <Space>
                     < Access
-                        permission={ALL_PERMISSIONS.USERS.RESTORE}
+                        permission={ALL_PERMISSIONS.PERMISSIONS.RESTORE}
                         hideChildren
                     >
                         <ClockCircleOutlined
