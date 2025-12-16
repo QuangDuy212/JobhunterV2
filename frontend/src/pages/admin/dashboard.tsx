@@ -49,16 +49,19 @@ const barOptions = {
         title: { display: false },
     },
     scales: {
-        y: { beginAtZero: true },
+        y: { beginAtZero: true, },
         x: {
             // Tối ưu hóa việc hiển thị tên cột
             ticks: {
-                autoSkip: false,
-                maxRotation: 0,
-                minRotation: 0,
-            }
+                autoSkip: false, // Hiển thị tất cả nhãn
+                maxRotation: 45, // Xoay nhãn tối đa 45 độ
+                minRotation: 45, // Xoay nhãn tối thiểu 45 độ
+            },
         }
-    }
+    },
+    // Thêm khoảng cách giữa các cột
+    barPercentage: 0.5, // Độ rộng của cột (giảm giá trị để tăng khoảng cách)
+    categoryPercentage: 0.7, // Độ rộng của nhóm cột
 };
 
 
@@ -400,7 +403,7 @@ const DashboardPage = () => {
                         {/* CỘT 2: LỊCH SỬ HOẠT ĐỘNG MỚI */}
                         <Col xs={24} lg={12}>
                             <Card
-                                title={<AntdTitle level={4} style={{ margin: 0 }}>Lịch sử Hoạt động Gần đây</AntdTitle>}
+                                title={<AntdTitle level={4} style={{ margin: 0 }}>History</AntdTitle>}
                                 bordered={false}
                                 style={{ height: '100%' }} // Đảm bảo chiều cao đồng đều
                             >
@@ -443,14 +446,27 @@ const DashboardPage = () => {
 
                     {/* Hàng 3: Biểu đồ Đường và Cột (Dùng Chart.js) */}
                     <Row gutter={[20, 20]} style={{ marginBottom: 20 }}>
-                        <Col xs={24} lg={12}>
-                            <Card title={<AntdTitle level={4} style={{ margin: 0 }}>Applications & Hires Trend</AntdTitle>} bordered={false}>
-                                <Line options={lineOptions} data={trendData} />
+                        <Col xs={24} lg={24}>
+                            <Card
+                                title={<AntdTitle level={4} style={{ margin: 0 }}>Applications & Hires Trend</AntdTitle>}
+                                bordered={false}
+                                style={{  width: '100%' }} // Full màn hình
+                            >
+                                <div style={{ height: 'calc(100% - 50px)', width: '100%' }}> {/* Trừ chiều cao tiêu đề */}
+                                    <Line options={lineOptions} data={trendData} />
+                                </div>
                             </Card>
                         </Col>
-                        <Col xs={24} lg={12}>
-                            <Card title={<AntdTitle level={4} style={{ margin: 0 }}>Job By Skill</AntdTitle>} bordered={false}>
-                                <Bar options={barOptions} data={jobPostingData} />
+
+                        <Col xs={24} lg={24}>
+                            <Card
+                                title={<AntdTitle level={4} style={{ margin: 0 }}>Job By Skill</AntdTitle>}
+                                bordered={false}
+                                style={{  width: '100%' }} // Full màn hình
+                            >
+                                <div style={{ overflowX: 'auto', height: 'calc(100% - 50px)', width: '100%' }}> {/* Cuộn ngang nếu cần */}
+                                    <Bar options={barOptions} data={jobPostingData} />
+                                </div>
                             </Card>
                         </Col>
                     </Row>

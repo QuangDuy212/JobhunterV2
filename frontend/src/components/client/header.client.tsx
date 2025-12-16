@@ -54,6 +54,10 @@ const Header = (props: any) => {
     };
 
     const handleLogout = async () => {
+        if(!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
         const res = await callLogout();
         if (res && res && +res.statusCode === 200) {
             dispatch(setLogoutAction({}));
@@ -83,7 +87,7 @@ const Header = (props: any) => {
             label: <label
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleLogout()}
-            >Đăng xuất</label>,
+            >{isAuthenticated ? "Đăng xuất" : "Đăng nhập"}</label>,
             key: 'logout',
             icon: <LogoutOutlined />
         },
@@ -136,7 +140,7 @@ const Header = (props: any) => {
                         </div>
                         :
                         <div className={styles['header-mobile']}>
-                            <span>Your APP</span>
+                            <span onClick={()=>{navigate("/")}}>Jobhunter</span>
                             <MenuFoldOutlined onClick={() => setOpenMobileMenu(true)} />
                         </div>
                     }

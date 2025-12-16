@@ -294,6 +294,14 @@ export const callFetchRoleById = (id: string) => {
     return axios.get<IBackendRes<IRole>>(`/api/v1/roles/${id}`);
 }
 
+export const callRestoreRole = (id: string) => {
+    return axios.put<IBackendRes<IRole>>(`/api/v1/roles/restore/${id}`);
+}
+
+export const callFetchRoleDeleted = (query: string) => {
+    return axios.get<IBackendRes<IModelPaginate<IRole>>>(`/api/v1/roles/deleted?${query}`);
+}
+
 /**
  * 
 Module Subscribers

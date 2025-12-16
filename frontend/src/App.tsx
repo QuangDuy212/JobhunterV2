@@ -19,8 +19,8 @@ import styles from 'styles/app.module.scss';
 import DashboardPage from './pages/admin/dashboard';
 import CompanyPage from './pages/admin/company/company';
 import PermissionPage from './pages/admin/permission/permission';
-import ResumePage from './pages/admin/resume';
-import RolePage from './pages/admin/role';
+import ResumePage from './pages/admin/resume/resume';
+import RolePage from './pages/admin/role/role';
 import UserPage from './pages/admin/user/user';
 import { fetchAccount } from './redux/slice/accountSlide';
 import LayoutApp from './components/share/layout.app';
@@ -33,6 +33,7 @@ import JobTabs from './pages/admin/job/job.tabs';
 import UserTabs from './pages/admin/user/user.tabs';
 import CompanyTabs from './pages/admin/company/company.tabs';
 import PermissionTabs from './pages/admin/permission/permission.tabs';
+import RoleTabs from './pages/admin/role/role.tabs';
 
 const LayoutClient = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -148,10 +149,12 @@ export default function App() {
         },
         {
           path: "role",
-          element:
-            <ProtectedRoute>
-              <RolePage />
-            </ProtectedRoute>
+          children: [
+            {
+              index: true,
+              element: <ProtectedRoute><RoleTabs /></ProtectedRoute>
+            },
+          ]
         }
       ],
     },

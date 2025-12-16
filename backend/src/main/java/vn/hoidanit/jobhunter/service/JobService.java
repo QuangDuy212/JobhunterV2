@@ -294,16 +294,30 @@ public class JobService {
     public ResultPaginationDTO fetchAllJobsForUser(Specification<Job> spec, Pageable pageable) {
 
         ResultPaginationDTO rs = new ResultPaginationDTO();
-        
+
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get()
-        : "";
-        
+                : "";
+
         User currentUserDB = this.userService.handleGetUserByUsername(email);
         // if(currentUserDB.getCompany() != null){
-        //     Specification<Job> companySpec = (root, query, criteriaBuilder) -> 
-        //     criteriaBuilder.equal(root.get("company").get("id"), currentUserDB.getCompany().getId());
-        //     spec = spec == null ? companySpec : spec.and(companySpec);
+        // Specification<Job> companySpec = (root, query, criteriaBuilder) ->
+        // criteriaBuilder.equal(root.get("company").get("id"),
+        // currentUserDB.getCompany().getId());
+        // spec = spec == null ? companySpec : spec.and(companySpec);
         // }
+
+        // 1. Tạo Specification cho điều kiện 'active' = true
+        Specification<Job> activeSpec = (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("active"));
+        // Hoặc: criteriaBuilder.equal(root.get("active"), true);
+        // Hoặc: criteriaBuilder.equal(root.get("active"), 1); (Nếu 'active' là kiểu số
+        // nguyên/bit)
+
+        // 2. Kết hợp activeSpec với Specification đã có (spec)
+        if (spec == null) {
+            spec = activeSpec;
+        } else {
+            spec = spec.and(activeSpec);
+        }
         Page<Job> pageJob = this.jobRepository.findAll(spec, pageable);
 
         List<Job> listJob = pageJob.getContent();
