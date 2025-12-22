@@ -65,3 +65,5 @@ out/
 .vscode/
 
 upload
+backend/src/main/resources/application.yml
+*.yml
