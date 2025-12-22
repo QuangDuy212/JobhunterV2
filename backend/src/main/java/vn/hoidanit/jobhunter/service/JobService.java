@@ -22,11 +22,13 @@ import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResCreateJobDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResUpdateJob;
+import vn.hoidanit.jobhunter.domain.response.job.SafetyCheckResult;
 import vn.hoidanit.jobhunter.repository.JobRepository;
 import vn.hoidanit.jobhunter.repository.SkillRespository;
 import vn.hoidanit.jobhunter.util.BaseSpecs;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.constant.JobStatusEnum; // Import JobStatusEnum
+import vn.hoidanit.jobhunter.util.error.JobContentException;
 
 @Service
 public class JobService {
@@ -48,45 +50,28 @@ public class JobService {
         this.geminiService = geminiService; // Khởi tạo GeminiService
     }
 
-    /**
-     * Hàm này được gọi ngay sau khi Job được tạo.
-     * Nó chạy bất đồng bộ (@Async) để không làm người dùng chờ đợi.
-     * 
-     * @param job Job Entity đã được lưu vào DB (với Status = REVIEWING)
-     */
-    @Async
-    public void checkAndApproveJob(Job job) {
-        // Lấy mô tả công việc
-        String jobDescription = job.getDescription();
+    public ResCreateJobDTO handleCreateJob(Job j) throws JobContentException {
+        // 1. Kiểm tra mô tả công việc bằng AI trước khi lưu (Chạy đồng bộ)
+        // Giả sử geminiService.checkContentSafety trả về một Object chứa: isSafe và
+        // violatedWords
+        SafetyCheckResult safetyResult = geminiService.checkContentSafety(j.getDescription());
 
-        System.out.println("Bắt đầu kiểm duyệt Job ID: " + job.getId());
-
-        // 1. GỌI AI ĐỂ KIỂM TRA MỨC ĐỘ AN TOÀN (blocking call trong luồng @Async)
-        boolean isSafe = geminiService.checkContentSafety(jobDescription);
-
-        // 2. CẬP NHẬT TRẠNG THÁI DỰA TRÊN KẾT QUẢ
-        if (isSafe) {
-            job.setStatus(JobStatusEnum.APPROVED);
-            System.out.println("Job ID " + job.getId() + " đã được AI APPROVE.");
-        } else {
-            job.setStatus(JobStatusEnum.REJECTED);
-            job.setActive(false);
-            System.out.println("Job ID " + job.getId() + " đã bị AI REJECT do nội dung phản cảm.");
+        if (!safetyResult.isSafe()) {
+            throw new JobContentException(
+                    "Mô tả công việc chứa nội dung không phù hợp.",
+                    safetyResult.getViolatedWords() // Đây là List<String>
+            );
         }
 
-        // Lưu lại trạng thái mới
-        this.jobRepository.save(job);
-    }
-
-    public ResCreateJobDTO handleCreateJob(Job j) {
-        // check skills
+        // 2. Nếu an toàn, tiến hành xử lý dữ liệu như cũ
         if (j.getSkills() != null) {
-            List<Long> reqSkills = j.getSkills()
-                    .stream().map(x -> x.getId())
+            List<Long> reqSkills = j.getSkills().stream()
+                    .map(x -> x.getId())
                     .collect(Collectors.toList());
             List<Skill> dbSkills = this.skillRespository.findByIdIn(reqSkills);
             j.setSkills(dbSkills);
         }
+
         if (j.getCompany() != null) {
             Optional<Company> cOptional = this.companyService.fetchCompanyById(j.getCompany().getId());
             if (cOptional.isPresent()) {
@@ -94,14 +79,11 @@ public class JobService {
             }
         }
 
-        // 1. Create job (Status mặc định là REVIEWING - đã được thiết lập trong Job
-        // Entity @PrePersist)
+        // 3. Lưu vào DB với trạng thái APPROVED luôn vì đã check xong
+        j.setStatus(JobStatusEnum.APPROVED);
         Job currentJob = this.jobRepository.save(j);
 
-        // 2. Kích hoạt kiểm duyệt AI BẤT ĐỒNG BỘ
-        this.checkAndApproveJob(currentJob);
-
-        // convert response
+        // 4. Convert sang DTO trả về
         ResCreateJobDTO dto = new ResCreateJobDTO();
         dto.setId(currentJob.getId());
         dto.setName(currentJob.getName());
@@ -116,7 +98,8 @@ public class JobService {
         dto.setCreatedBy(currentJob.getCreatedBy());
 
         if (currentJob.getSkills() != null) {
-            List<String> skills = currentJob.getSkills().stream().map(s -> s.getName())
+            List<String> skills = currentJob.getSkills().stream()
+                    .map(s -> s.getName())
                     .collect(Collectors.toList());
             dto.setSkills(skills);
         }

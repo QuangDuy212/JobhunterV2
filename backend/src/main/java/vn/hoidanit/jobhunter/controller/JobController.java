@@ -28,6 +28,8 @@ import vn.hoidanit.jobhunter.domain.response.job.ResUpdateJob;
 import vn.hoidanit.jobhunter.service.JobService;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
+import vn.hoidanit.jobhunter.util.error.JobContentException;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
@@ -41,8 +43,11 @@ public class JobController {
 
     @PostMapping("/jobs")
     @ApiMessage("Create a job")
-    public ResponseEntity<ResCreateJobDTO> createNewJob(@Valid @RequestBody Job reqJob) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.jobService.handleCreateJob(reqJob));
+    public ResponseEntity<ResCreateJobDTO> createNewJob(@Valid @RequestBody Job reqJob) throws JobContentException {
+        // Logic check AI đã nằm trọn trong handleCreateJob
+        // Nếu có lỗi, Exception sẽ được ném ra và GlobalException sẽ bắt lại
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(this.jobService.handleCreateJob(reqJob));
     }
 
     @PutMapping("/jobs")

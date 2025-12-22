@@ -18,6 +18,18 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalException {
+
+    // Handle Content Violation Exception (AI Safety Check)
+    @ExceptionHandler(value = JobContentException.class)
+    public ResponseEntity<RestResponse<Object>> handleJobContentException(JobContentException ex) {
+        RestResponse<Object> res = new RestResponse<>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setMessage(ex.getMessage());
+        res.setError("AI_CONTENT_REJECTED");
+        // Trả về danh sách từ vi phạm ở field data để Frontend map vào res.data
+        res.setData(ex.getViolatedWords()); 
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
     // handle all exeption
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse<Object>> handleAllException(Exception ex) {
